@@ -23,7 +23,7 @@
 		B51AC2322175673C00132D60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B51AC2352175673C00132D60 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B51AC2372175673C00132D60 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B51AC2382175673C00132D60 /* Delete.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Delete.entitlements; sourceTree = "<group>"; };
+		B51AC2382175673C00132D60 /* LC3Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LC3Simulator.entitlements; sourceTree = "<group>"; };
 		B532AECB21C8BAEC00A5281C /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 		B532AECD21C8BCC900A5281C /* Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memory.swift; sourceTree = "<group>"; };
 		B5624F9521C2E9F900B179AA /* Simulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Simulator.swift; sourceTree = "<group>"; };
@@ -67,7 +67,7 @@
 				B532AECD21C8BCC900A5281C /* Memory.swift */,
 				B532AECB21C8BAEC00A5281C /* Registers.swift */,
 				B51AC2372175673C00132D60 /* Info.plist */,
-				B51AC2382175673C00132D60 /* Delete.entitlements */,
+				B51AC2382175673C00132D60 /* LC3Simulator.entitlements */,
 			);
 			path = "LC3 Simulator";
 			sourceTree = "<group>";
