@@ -33,9 +33,10 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
     
     // TODO: implement NSOpenSavePanelDelegate to only allow loading of appropriate files
     @IBAction func openDocument(_ sender: NSMenuItem) {
-        print("here in VC")
+        print("called openDocument() in VC")
         let window = NSApp.mainWindow!
         let panel = NSOpenPanel()
+        panel.delegate = self
         panel.message = "Import an assembled file"
         panel.beginSheetModal(for: window) { (response) in
             switch (response) {
@@ -47,28 +48,7 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
                 print("didn't select something")
             }
         }
-//        print("openDocument ViewController")
-//        if let url = NSOpenPanel().selectUrl {
-//            imageView.image = NSImage(contentsOf: url)
-//            print("file selected:", url.path)
-//        } else {
-//            print("file selection was canceled")
-//        }
     }
-    
-//    func openDocument() {
-//        let window = NSApp.mainWindow!
-//        let panel = NSOpenPanel()
-//        panel.message = "Import an assembled file"
-//        panel.beginSheetModal(for: window) { (response) in
-//            switch (response) {
-//            case .OK:
-//                print("selected the files \(panel.urls)")
-//            default:
-//                print("didn't select somethign")
-//            }
-//        }
-//    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -154,6 +134,16 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
 //            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
 //            return newTextField
             return cellView
+        case "labelColumnID":
+            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
+            cellView.textField?.stringValue = memory.getEntryLabel(of: row) ?? ""
+            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
+            //            let newTextField = NSTextField(string: String(format: "x%04X", row))
+            //            newTextField.isBezeled = false
+            //            newTextField.drawsBackground = false
+            //            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
+            //            return newTextField
+            return cellView
         case "instructionColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "instructionCellID"), owner: self) as! NSTableCellView
             cellView.textField?.stringValue = memory[row].stringFromInstruction
@@ -186,3 +176,13 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
 //    }
 //
 //}
+
+// MARK: NSOpenSavePanelDelegate methods
+extension ViewController : NSOpenSavePanelDelegate {
+
+    // TODO: eventually allow .asm files and do the whole automatic assembling and loading thing
+    func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+        return url.pathExtension == "obj"
+    }
+    
+}

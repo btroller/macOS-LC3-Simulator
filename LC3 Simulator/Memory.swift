@@ -138,6 +138,14 @@ class Memory {
         // Machine control register
         0xFFFE: 0xFFFF
     ]
+    let lc3OSSymbols = [
+        "TRAP_GETC":  0x0400,
+        "TRAP_OUT":   0x0430,
+        "TRAP_PUTS":  0x0450,
+        "TRAP_IN":    0x04A0,
+        "TRAP_PUTSP": 0x04E0,
+        "TRAP_HALT":  0xFD70
+    ]
     
     class Entry {
         var value : UInt16 = 0
@@ -151,6 +159,14 @@ class Memory {
         // Used to initalize with default values only
         init() {}
     }
+    
+    func getEntryLabel(of entry: Int) -> String? {
+        return memory[entry].label
+    }
+    
+//    func setEntryLabel(of entry: Int, to label: String?) {
+//        memory[entry].label = label
+//    }
     
     // reloads memory to inital state with only OS present
     // NOTE: not nessecary, can just initialize whole new unit of Memory when making new Simulator
@@ -191,6 +207,11 @@ class Memory {
         for (address, value) in lc3OS {
             self[Int(address)] = value
         }
+        
+        // load OS symbols
+        for (label, address) in lc3OSSymbols {
+            memory[address].label = label
+        }
     
     }
     
@@ -205,10 +226,9 @@ class Memory {
 //        let path = "/Users/Ben/Downloads/lc3tools/lc3os.obj"
 //        let fileData = NSData(contentsOfFile: path)!
         let fileData = NSData(contentsOf: url)!
-        let fileLength = fileData.length
-//        let dataRange = NSRange(location: 0, length: 10 * 2) // TODO: change from 10
-        let dataRange = NSRange(location: 0, length: fileLength / 2)
-        var bigEndienValues = [UInt16].init(repeating: 0, count: fileLength / 2)
+        let numUInt16sInFile = fileData.length / 2
+        let dataRange = NSRange(location: 0, length: numUInt16sInFile)
+        var bigEndienValues = [UInt16].init(repeating: 0, count: numUInt16sInFile)
         fileData.getBytes(&bigEndienValues, range: dataRange)
         
         guard bigEndienValues.count > 0 else { return }
@@ -223,6 +243,32 @@ class Memory {
             print("val[\(index)] = " + String(format: "%04X", value))
             self[orig + index] = value
 //            modifiedMemoryLocations.appe
+        }
+        
+        // try opening corresponding symbol file
+        let symURL = url.deletingPathExtension().appendingPathExtension("sym")
+        do {
+            let symFileContents = try String(contentsOf: symURL)
+            print("found sym file at \(symURL)")
+            // get each line of symbol file with
+            let symFileLines = symFileContents.components(separatedBy: .newlines)[4...]
+            for line in symFileLines {
+                print(line)
+                var label : NSString?
+                var addressStr : NSString?
+                let scanner = Scanner(string: line)
+                // ignore `/` characters at beginning of line
+                let charsToSkip = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/"))
+                scanner.charactersToBeSkipped = charsToSkip
+                guard scanner.scanUpToCharacters(from: charsToSkip, into: &label) == true && label != nil else { return }
+                guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true && addressStr != nil else { return }
+                guard let address = UInt16(addressStr! as String, radix: 16) else { return }
+                memory[Int(address)].label = label as String?
+                print("new label: \(label) at address: \(address)")
+            }
+        } catch {
+            print("Failed to open matching symbol file with error: \(error)")
+            return
         }
         
 //        for i in Int(values[1])..<(values)(fileLength / 2) {
