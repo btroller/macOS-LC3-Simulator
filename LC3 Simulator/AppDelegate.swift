@@ -20,6 +20,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
+    
+//    @IBAction func openDocument(_ sender: Any?) {
+//        print("Here")
+//        guard let vc = NSApp.keyWindow?.contentViewController as? ViewController else {
+//            return
+//        }
+//        vc.openDocument()
+//    }
+    
+//    func openDocument(withContentsOf url: URL,
+//                      display displayDocument: Bool,
+//                      completionHandler: @escaping (NSDocument?, Bool, Error?) -> Void) {
+//        print("Here")
+//    }
 
 
 }

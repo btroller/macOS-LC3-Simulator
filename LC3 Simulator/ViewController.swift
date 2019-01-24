@@ -24,24 +24,66 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
     
     // MARK: Variables
     typealias Instruction = UInt16
-    var memory : [UInt16] = [UInt16].init(repeating: 0, count: 0xFFFF + 1)
+    let simulator = Simulator()
+    var memory : Memory!
     
     func onItemClicked() {
         print("row \(tableView.clickedRow), col \(tableView.clickedColumn) clicked")
     }
     
+    // TODO: implement NSOpenSavePanelDelegate to only allow loading of appropriate files
+    @IBAction func openDocument(_ sender: NSMenuItem) {
+        print("here in VC")
+        let window = NSApp.mainWindow!
+        let panel = NSOpenPanel()
+        panel.message = "Import an assembled file"
+        panel.beginSheetModal(for: window) { (response) in
+            switch (response) {
+            case .OK:
+                print("selected the files \(panel.urls)")
+                self.memory.loadProgramsFromFiles(at: panel.urls)
+                self.tableView.reloadData()
+            default:
+                print("didn't select something")
+            }
+        }
+//        print("openDocument ViewController")
+//        if let url = NSOpenPanel().selectUrl {
+//            imageView.image = NSImage(contentsOf: url)
+//            print("file selected:", url.path)
+//        } else {
+//            print("file selection was canceled")
+//        }
+    }
+    
+//    func openDocument() {
+//        let window = NSApp.mainWindow!
+//        let panel = NSOpenPanel()
+//        panel.message = "Import an assembled file"
+//        panel.beginSheetModal(for: window) { (response) in
+//            switch (response) {
+//            case .OK:
+//                print("selected the files \(panel.urls)")
+//            default:
+//                print("didn't select somethign")
+//            }
+//        }
+//    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        memory = simulator.memory
         // TODO: remove
         // Randomly fills memory with junk (for testing purposes)
-        for address in 0...0xFFFF {
-            memory[address] = UInt16.random(in: UInt16.min...UInt16.max)
-        }
-        memory[0x3000] = 0b0001000111000110
-        memory[0x3001] = 0b0000_111_111111111
+//        for address in 0...0xFFFF {
+//            memory[address] = UInt16.random(in: UInt16.min...UInt16.max)
+//        }
+//        memory[0x3000] = 0b0001000111000110
+//        memory[0x3001] = 0b0000_111_111111111
 //        tableView.
-        tableView.reloadData()
+//        tableView.reloadData()
+        print("viewloaded")
     }
 
     override var representedObject: Any? {
@@ -132,229 +174,7 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
 
 }
 
-// MARK: Instruction extensions to make parsing easier
-extension UInt16 {
-    
-    enum InstructionType {
-        case ADDR
-        case ADDI
-        case ANDR
-        case ANDI
-        case BR
-        case JMP
-        case JSR
-        case JSRR
-        case LD
-        case LDI
-        case LDR
-        case LEA
-        case NOT
-        case RET
-        case RTI
-        case ST
-        case STI
-        case STR
-        case TRAP
-        case NOT_IMPLEMENTED
-    }
-    
-    func getBit(at pos : Int) -> UInt16 {
-        return (self >> pos) & 1
-    }
-    
-    var instructionType : InstructionType {
-        let instructionBits = self >> 12
-        switch instructionBits {
-        case 0b0001:
-            if getBit(at: 5) == 0 {
-                return .ADDR
-            } else {
-                return .ADDI
-            }
-        case 0b0101:
-            if getBit(at: 5) == 0 {
-                return .ANDR
-            } else {
-                return .ANDI
-            }
-        case 0b0000:
-            return .BR
-        case 0b1100:
-            if getBit(at: 8) == 1 && getBit(at: 7) == 1 && getBit(at: 6) == 1 {
-                return .RET
-            } else {
-                return .JMP
-            }
-        case 0b0100:
-            if getBit(at: 11) == 1 {
-                return .JSR
-            } else {
-                return .JSRR
-            }
-        case 0b0010:
-            return .LD
-        case 0b1010:
-            return .LDI
-        case 0b0110:
-            return .LDR
-        case 0b1110:
-            return .LEA
-        case 0b1001:
-            return .NOT
-        case 0b1000:
-            return .RTI
-        case 0b0011:
-            return .ST
-        case 0b1011:
-            return .STI
-        case 0b0111:
-            return .STR
-        case 0b1111:
-            return .TRAP
-        default:
-            return .NOT_IMPLEMENTED
-        }
-    }
-    
-    func getBits(high : Int, low : Int) -> UInt16 {
-        return (self >> low) & (0xFFFF >> (Int(16) - (high - low + 1)))
-    }
-    
-    var imm5 : UInt16 {
-        return getBits(high: 4, low: 0)
-    }
-    
-    // NOTE: returns a signed result to make displaying and working with easier
-    var sextImm5 : Int16 {
-        if imm5.getBit(at: 4) == 1 {
-            return Int16.init(bitPattern: (imm5 | 0b1111_1111_111_10000))
-        } else {
-            return Int16(imm5)
-        }
-    }
-    
-    // NOTE: called SR_DR because it's sometimes SR and sometimes DR
-    var SR_DR : UInt16 {
-        return getBits(high: 11, low: 9)
-    }
-    
-    var SR1 : UInt16 {
-        return getBits(high: 8, low: 6)
-    }
-    
-    var SR2 : UInt16 {
-        return getBits(high: 2, low: 0)
-    }
-    
-    var PCoffset9 : UInt16 {
-        return getBits(high: 8, low: 0)
-    }
-    
-    var sextPCoffset9 : Int16 {
-        if PCoffset9.getBit(at: 8) == 1 {
-            return Int16.init(bitPattern: PCoffset9 | 0b1111_111_000000000)
-        } else {
-            return Int16(PCoffset9)
-        }
-    }
-    
-    var PCoffset11 : UInt16 {
-        return getBits(high: 10, low: 0)
-    }
-    
-    var sextPCoffset11 : Int16 {
-        if PCoffset11.getBit(at: 10) == 1 {
-            return Int16.init(bitPattern: PCoffset11 | 0b11111_00000000000)
-        } else {
-            return Int16(PCoffset11)
-        }
-    }
-    
-    var BaseR : UInt16 {
-        return getBits(high: 8, low: 6)
-    }
-    
-    var offset6 : UInt16 {
-        return getBits(high: 5, low: 0)
-    }
-    
-    var sextOffset6 : Int16 {
-        if offset6.getBit(at: 5) == 1 {
-            return Int16.init(bitPattern: offset6 | 0b1111111111_000000)
-        } else {
-            return Int16(offset6)
-        }
-    }
-    
-    var trapVect8 : UInt16 {
-        return getBits(high: 7, low: 0)
-    }
-    
-    var zextTrapVect8 : UInt16 {
-        return trapVect8
-    }
-    
-    var stringFromInstruction : String {
-        switch self.instructionType {
-        case .ADDR:
-            return "ADD R\(SR_DR), R\(SR1), R\(SR2)"
-        case .ADDI:
-            return "ADD R\(SR_DR), R\(SR1), #\(sextImm5)"
-        case .ANDR:
-            return "AND R\(SR_DR), R\(SR1), R\(SR2)"
-        case .ANDI:
-            return "AND R\(SR_DR), R\(SR1), #\(sextImm5)"
-        // TODO: use labels when available
-        case .BR:
-            var branchStr = "BR"
-            if getBit(at: 11) == 1 {
-                branchStr.append("n")
-            }
-            if getBit(at: 10) == 1 {
-                branchStr.append("z")
-            }
-            if getBit(at: 9) == 1 {
-                branchStr.append("p")
-            }
-            branchStr.append(String.init(repeating: " ", count: (6 - branchStr.count)))
-            branchStr.append("#\(sextPCoffset9)")
-            return branchStr
-        case .JMP:
-            return "JMP R\(BaseR)"
-        // TODO: use labels when available
-        case .JSR:
-            return "JSR #\(sextPCoffset11)"
-        // TODO: test from here on down in function
-        case .JSRR:
-            // TODO: test
-            return "JSRR R\(BaseR)"
-        case .LD:
-            return "LD R\(SR_DR), #\(sextPCoffset9)"
-        case .LDI:
-            return "LDI R\(SR_DR), #\(sextPCoffset9)"
-        case .LDR:
-            return "LDR R\(SR_DR), R\(BaseR), #\(sextOffset6)"
-        case .LEA:
-            return "LEA R\(SR_DR), #\(sextPCoffset9)"
-        case .NOT:
-            return "NOT R\(SR_DR), R\(getBits(high: 8, low: 6))"
-        case .RET:
-            return "RET"
-        case .RTI:
-            return "RTI"
-        case .ST:
-            return "ST R\(SR_DR), #\(sextPCoffset9)"
-        case .STI:
-            return "STI R\(SR_DR), #\(sextPCoffset9)"
-        case .STR:
-            return "STR R\(SR_DR), R\(BaseR), #\(sextOffset6)"
-        case .TRAP:
-            return "TRAP x\(zextTrapVect8)"
-        case .NOT_IMPLEMENTED:
-            return "RESERVED INSTRUCTION"
-        }
-    }
-}
+
 //
 //extension ViewController: NSSearchFieldDelegate {
 //

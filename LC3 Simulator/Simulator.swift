@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Simulator : NSObject {
+class Simulator {
     
     // MARK: state-keeping
     var registers = Registers()
