@@ -31,38 +31,10 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
         print("row \(tableView.clickedRow), col \(tableView.clickedColumn) clicked")
     }
     
-    // TODO: implement NSOpenSavePanelDelegate to only allow loading of appropriate files
-    @IBAction func openDocument(_ sender: NSMenuItem) {
-        print("called openDocument() in VC")
-        let window = NSApp.mainWindow!
-        let panel = NSOpenPanel()
-        panel.delegate = self
-        panel.message = "Import an assembled file"
-        panel.beginSheetModal(for: window) { (response) in
-            switch (response) {
-            case .OK:
-                print("selected the files \(panel.urls)")
-                self.memory.loadProgramsFromFiles(at: panel.urls)
-                self.tableView.reloadData()
-            default:
-                print("didn't select something")
-            }
-        }
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
         memory = simulator.memory
-        // TODO: remove
-        // Randomly fills memory with junk (for testing purposes)
-//        for address in 0...0xFFFF {
-//            memory[address] = UInt16.random(in: UInt16.min...UInt16.max)
-//        }
-//        memory[0x3000] = 0b0001000111000110
-//        memory[0x3001] = 0b0000_111_111111111
-//        tableView.
-//        tableView.reloadData()
         print("viewloaded")
     }
 
@@ -73,22 +45,11 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
     }
     
     func numberOfRows(in tableView: NSTableView) -> Int {
-        // Note -- might be 0xFFFF, but online simulator has 0 through 0xFFFF
         return 0xFFFF + 1
     }
     
     // TODO: set font only once, hopefully in Interface Builder
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-//        switch tableColumn?.identifier.rawValue {
-//        case "statusColumnID":
-//            let tmp =
-//            tmp.imageView = NSImageView(image: NSImage(imageLiteralResourceName: NSImage.goRightTemplateName))
-//            return tmp
-//        default:
-//            let tmp = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "addressCellID"), owner: self) as! NSTableCellView
-//            tmp.textField = NSTextField(string: String(format: "x%04X", row))
-//            return tmp
-//        }
         switch tableColumn?.identifier.rawValue {
         case "statusColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "statusCellID"), owner: self) as! NSTableCellView
@@ -104,54 +65,31 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "addressCellID"), owner: self) as! NSTableCellView
             cellView.textField?.stringValue = String(format: "x%04X", row)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            let newTextField = NSTextField(string: String(format: "x%04X", row))
-//            newTextField.isBezeled = false
-//            newTextField.drawsBackground = false
-//            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
         case "valueBinaryColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
-            let unformattedBinaryString = String(memory[row], radix: 2)
+            let unformattedBinaryString = String(memory[row].value, radix: 2)
             var formattedBinaryString = String(repeating: "0", count: 16 - unformattedBinaryString.count) + unformattedBinaryString
             formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 12))
             formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 8))
             formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 4))
             cellView.textField?.stringValue = formattedBinaryString
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            let newTextField = NSTextField(string: formattedBinaryString)
-//            newTextField.isBezeled = false
-//            newTextField.drawsBackground = false
-//            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            return newTextField
             return cellView
         case "valueHexColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = String(format: "x%04X", memory[row])
+            cellView.textField?.stringValue = String(format: "x%04X", memory[row].value)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            let newTextField = NSTextField(string: String(format: "x%04X", row))
-//            newTextField.isBezeled = false
-//            newTextField.drawsBackground = false
-//            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            return newTextField
             return cellView
         case "labelColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = memory.getEntryLabel(of: row) ?? ""
+            cellView.textField?.stringValue = memory.getEntryLabel(of: row)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            //            let newTextField = NSTextField(string: String(format: "x%04X", row))
-            //            newTextField.isBezeled = false
-            //            newTextField.drawsBackground = false
-            //            newTextField.font = NSFont.monospacedDigitSystemFont(ofSize: (newTextField.font?.pointSize)!, weight: NSFont.Weight.regular)
-            //            return newTextField
             return cellView
         case "instructionColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "instructionCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = memory[row].stringFromInstruction
+            cellView.textField?.stringValue = memory.instructionString(at: row)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-//            let newTextField = NSTextField(string: "NOT      R0, R0")
-//            newTextField.isBezeled = false
-//            newTextField.drawsBackground = false
-//            return newTextField
             return cellView
         default:
             let newTextField = NSTextField(string: "\(row)")
@@ -180,6 +118,25 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
 // MARK: NSOpenSavePanelDelegate methods
 extension ViewController : NSOpenSavePanelDelegate {
 
+    // NOTE: not a part of the delegate
+    @IBAction func openDocument(_ sender: NSMenuItem) {
+        print("called openDocument() in VC")
+        let window = NSApp.mainWindow!
+        let panel = NSOpenPanel()
+        panel.delegate = self
+        panel.message = "Import an assembled file"
+        panel.beginSheetModal(for: window) { (response) in
+            switch (response) {
+            case .OK:
+                print("selected the files \(panel.urls)")
+                self.memory.loadProgramsFromFiles(at: panel.urls)
+                self.tableView.reloadData()
+            default:
+                print("didn't select something")
+            }
+        }
+    }
+    
     // TODO: eventually allow .asm files and do the whole automatic assembling and loading thing
     func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
         return url.pathExtension == "obj"
