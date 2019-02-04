@@ -17,6 +17,15 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
     // MARK: IB elements
     @IBOutlet weak var tableView: NSTableView!
     
+    
+    
+    // MARK: IB actions
+    @IBAction func runClickedWithSender(_ sender: AnyObject) {
+        print("run clicked")
+        simulator.executeNextInstruction()
+        tableView.reloadData()
+    }
+    
     // MARK: Constants
     let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
     let kStatusAvailableImage = NSImage(imageLiteralResourceName: NSImage.statusAvailableName)
@@ -53,13 +62,21 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
         switch tableColumn?.identifier.rawValue {
         case "statusColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "statusCellID"), owner: self) as! NSTableCellView
-            if row == 1 {
-                cellView.imageView?.image = NSImage(imageLiteralResourceName: NSImage.goRightTemplateName)
-            } else if row == 3 {
+            
+            switch memory[row].shouldBreak {
+                case true:
                 cellView.imageView?.image = kStatusUnavailableIMage
-            } else {
+                case false:
                 cellView.imageView?.image = kStatusNoneImage
             }
+            
+//            if row == 1 {
+//                cellView.imageView?.image = NSImage(imageLiteralResourceName: NSImage.goRightTemplateName)
+//            } else if row == 3 {
+//                cellView.imageView?.image = kStatusUnavailableIMage
+//            } else {
+//                cellView.imageView?.image = kStatusNoneImage
+//            }
             return cellView
         case "addressColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "addressCellID"), owner: self) as! NSTableCellView

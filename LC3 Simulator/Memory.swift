@@ -9,9 +9,7 @@
 import Foundation
 
 class Memory {
-//    typealias Instruction = UInt16
-//    var memory : [UInt16] = [UInt16].init(repeating: 0, count: 0xFFFF + 1)
-    var memory : [Entry] = []
+    private var entries : [Entry] = []
     
     class Entry {
         var value : UInt16 = 0
@@ -58,10 +56,10 @@ class Memory {
             // remember the PC increment
             let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) + 1 + offset)
             
-            return memory[Int(effectiveAddress)].label ?? "#\(offset)"
+            return entries[Int(effectiveAddress)].label ?? "#\(offset)"
         }
         
-        let entry = memory[address]
+        let entry = entries[address]
         let val = entry.value
         
         switch entry.value.instructionType {
@@ -75,6 +73,11 @@ class Memory {
             return "AND R\(val.SR_DR), R\(val.SR1), #\(val.sextImm5)"
         // TODO: use labels when available
         case .BR:
+            // Return NOP if branching nowhere or all 0s
+            if ((val & 0x0E00) == 0 || val == 0) {
+                return "NOP";
+            }
+            
             var branchStr = "BR"
             if val.getBit(at: 11) == 1 {
                 branchStr.append("n")
@@ -118,8 +121,8 @@ class Memory {
         case .STR:
             return "STR R\(val.SR_DR), R\(val.BaseR), #\(val.sextOffset6)"
         case .TRAP:
-            let actualTrapAddress = memory[Int(val.zextTrapVect8)].value
-            if let trapLabel = memory[Int(actualTrapAddress)].label {
+            let actualTrapAddress = entries[Int(val.zextTrapVect8)].value
+            if let trapLabel = entries[Int(actualTrapAddress)].label {
                 return "TRAP \(trapLabel)"
             }
             return "TRAP x\(val.zextTrapVect8)"
@@ -129,7 +132,7 @@ class Memory {
     }
     
     func getEntryLabel(of entry: Int) -> String {
-        return memory[entry].label ?? ""
+        return entries[entry].label ?? ""
     }
     
     // MARK: Initializer
@@ -138,7 +141,7 @@ class Memory {
         
         // Initialize rest of memory to all 0s and no breakpoints
         for _ in 0...0xFFFF {
-            memory.append(Entry())
+            entries.append(Entry())
         }
         
         // fill in bad traps
@@ -168,7 +171,7 @@ class Memory {
         
         // load OS symbols
         for (label, address) in LC3OS.osSymbols {
-            memory[address].label = label
+            entries[address].label = label
         }
     
     }
@@ -183,12 +186,16 @@ class Memory {
     // Loads in a single program
     func loadProgramFromFile(at url: URL) {
         let fileData = NSData(contentsOf: url)!
+        guard fileData.length % 2 == 0 else { print("uneven length input file") ; return }
         let numUInt16sInFile = fileData.length / 2
-        let dataRange = NSRange(location: 0, length: numUInt16sInFile)
+        print("numUInt16sInFile = \(numUInt16sInFile)")
+        let dataRange = NSMakeRange(0, fileData.length)
         var bigEndienValues = [UInt16].init(repeating: 0, count: numUInt16sInFile)
         fileData.getBytes(&bigEndienValues, range: dataRange)
         
         guard bigEndienValues.count > 0 else { return }
+        
+        print(bigEndienValues)
         
         let values : [UInt16] = bigEndienValues.map { CFSwapInt16($0) }
         
@@ -196,8 +203,9 @@ class Memory {
         print("orig = " + String(format: "%04X", orig))
         let programData = values[1...]
 //        var modifiedMemoryLocations : [Int] = []
+        // might be able to do this without recording all separately just by reloading range from start to (start + length)
         for (index, value) in programData.enumerated() {
-            print("val[\(index)] = " + String(format: "%04X", value))
+            print("val[\(index)] = " + String(format: "0x%04X", value))
             self[orig + index].value = value
 //            modifiedMemoryLocations.appe
         }
@@ -220,7 +228,7 @@ class Memory {
                 guard scanner.scanUpToCharacters(from: charsToSkip, into: &label) == true && label != nil else { return }
                 guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true && addressStr != nil else { return }
                 guard let address = UInt16(addressStr! as String, radix: 16) else { return }
-                memory[Int(address)].label = label as String?
+                entries[Int(address)].label = label as String?
                 print("new label: \(String(describing: label)) at address: \(address)")
             }
         } catch {
@@ -241,11 +249,11 @@ extension Memory {
     
     subscript(index: Int) -> Entry {
         get {
-            return memory[index]
+            return entries[index]
         }
         // NOTE: sets only the value of the memory entry
         set {
-            memory[index] = newValue
+            entries[index] = newValue
         }
     }
     
@@ -390,5 +398,17 @@ extension UInt16 {
     
     var zextTrapVect8 : UInt16 {
         return trapVect8
+    }
+    
+    var N : Bool {
+        return getBit(at: 11) == 1
+    }
+    
+    var Z : Bool {
+        return getBit(at: 10) == 1
+    }
+    
+    var P : Bool {
+        return getBit(at: 9) == 1
     }
 }
