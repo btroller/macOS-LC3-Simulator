@@ -8,6 +8,9 @@
 
 // Question: Should I allow poorly-formatted instructions - ex. 0b1100_111_000_111111
 // Question: should I include NOP? (all 0s)
+// TODO: set up search for / jump to addresses
+// TODO: decide what PC indicator is
+// TODO: decide register UI
 
 import Foundation
 import Cocoa
@@ -63,7 +66,7 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
         case "statusColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "statusCellID"), owner: self) as! NSTableCellView
             
-            switch memory[row].shouldBreak {
+            switch memory[UInt16(row)].shouldBreak {
                 case true:
                 cellView.imageView?.image = kStatusUnavailableIMage
                 case false:
@@ -85,7 +88,7 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
             return cellView
         case "valueBinaryColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
-            let unformattedBinaryString = String(memory[row].value, radix: 2)
+            let unformattedBinaryString = String(memory[UInt16(row)].value, radix: 2)
             var formattedBinaryString = String(repeating: "0", count: 16 - unformattedBinaryString.count) + unformattedBinaryString
             formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 12))
             formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 8))
@@ -94,12 +97,12 @@ class ViewController: NSViewController, NSTableViewDataSource, NSTableViewDelega
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
         case "valueHexColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = String(format: "x%04X", memory[row].value)
+            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueHexCellID"), owner: self) as! NSTableCellView
+            cellView.textField?.stringValue = String(format: "x%04X", memory[UInt16(row)].value)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
         case "labelColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
+            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "labelCellID"), owner: self) as! NSTableCellView
             cellView.textField?.stringValue = memory.getEntryLabel(of: row)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
@@ -156,7 +159,7 @@ extension ViewController : NSOpenSavePanelDelegate {
     
     // TODO: eventually allow .asm files and do the whole automatic assembling and loading thing
     func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
-        return url.pathExtension == "obj"
+        return url.pathExtension == "obj" || url.hasDirectoryPath
     }
     
 }

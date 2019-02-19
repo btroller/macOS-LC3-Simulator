@@ -146,7 +146,7 @@ class Memory {
         
         // fill in bad traps
         // NOTE: Windows sim fills in xFF, online one doesn't
-        for i in 0...0xFF {
+        for i in 0...(0xFF as UInt16) {
             self[i].value = 0xFD00
         }
         
@@ -154,19 +154,19 @@ class Memory {
         let inputPromptAsUInt16 = "Input a character> \0".utf8.map{ UInt16($0) }
         let promptStartAddress = 0x04A8
         for i in 0..<inputPromptAsUInt16.count {
-            self[promptStartAddress + i].value = inputPromptAsUInt16[i]
+            self[UInt16(promptStartAddress + i)].value = inputPromptAsUInt16[i]
         }
         
         // fill in halt message
         let haltMessageAsUInt16 = "\n----- Halting the processor ----- \n\0".utf8.map{ UInt16($0) }
         let haltStartAddress = 0xFD80
         for i in 0..<haltMessageAsUInt16.count {
-            self[haltStartAddress + i].value = haltMessageAsUInt16[i]
+            self[UInt16(haltStartAddress + i)].value = haltMessageAsUInt16[i]
         }
         
         // load traps and interrupts
         for (address, value) in LC3OS.nonZeroValues {
-            self[Int(address)].value = value
+            self[address].value = value
         }
         
         // load OS symbols
@@ -206,7 +206,7 @@ class Memory {
         // might be able to do this without recording all separately just by reloading range from start to (start + length)
         for (index, value) in programData.enumerated() {
             print("val[\(index)] = " + String(format: "0x%04X", value))
-            self[orig + index].value = value
+            self[UInt16(orig + index)].value = value
 //            modifiedMemoryLocations.appe
         }
         
@@ -235,11 +235,7 @@ class Memory {
             print("Failed to open matching symbol file with error: \(error)")
             return
         }
-        
-//        for i in Int(values[1])..<(values)(fileLength / 2) {
-//            print(values[i])
-//            self[i] = values[i]
-//        }
+
     }
     
 }
@@ -247,13 +243,13 @@ class Memory {
 
 extension Memory {
     
-    subscript(index: Int) -> Entry {
+    subscript(index: UInt16) -> Entry {
         get {
-            return entries[index]
+            return entries[Int(index)]
         }
         // NOTE: sets only the value of the memory entry
         set {
-            entries[index] = newValue
+            entries[Int(index)] = newValue
         }
     }
     
@@ -262,11 +258,26 @@ extension Memory {
 // MARK: Instruction extensions to make parsing easier
 extension UInt16 {
     
-    
-    
     func getBit(at pos : Int) -> UInt16 {
         return (self >> pos) & 1
     }
+    
+    mutating func setBit(at pos : Int, to val: UInt16) {
+        assert(val == 0 || val == 1)
+        self = (self & ~(1 << pos)) | (val << pos)
+    }
+    
+//    var numSignificantBits : UInt16 {
+//        var numSigBits : UInt16 = 0
+//        var temp = self
+//        for _ in 0..<temp.bitWidth {
+//            if temp & 0x1 == 1 {
+//                numSigBits += 1
+//            }
+//            temp >>= 1
+//        }
+//        return numSigBits
+//    }
     
     var instructionType : Memory.Entry.InstructionType {
         let instructionBits = self >> 12

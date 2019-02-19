@@ -1293,7 +1293,7 @@
                                                             </textFieldCell>
                                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                             <prototypeCellViews>
-                                                                <tableCellView identifier="instructionCellID" id="BgM-XZ-SnO">
+                                                                <tableCellView identifier="labelCellID" id="BgM-XZ-SnO">
                                                                     <rect key="frame" x="302" y="1" width="97" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                     <subviews>

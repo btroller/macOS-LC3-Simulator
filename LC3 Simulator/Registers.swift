@@ -11,21 +11,73 @@ import Foundation
 class Registers {
     var pc : UInt16 = 0x3000
     var ir: UInt16 = 0
-    var psr : UInt16 = 0
-    // I don't think there's actually a CC register, I'm pretty sure it's all in the PSR.
+    var psr : UInt16 = 0x2 // set CC to N = 0, Z = 1, P = 0
 //    var cc : UInt16 = 0
-    var N : Bool = false
-    var Z : Bool = true
-    var P : Bool = false
+    var N : Bool {
+        get {
+            return psr.getBit(at: 2) == 1
+        }
+        set {
+            psr.setBit(at: 2, to: newValue ? 1 : 0)
+        }
+    }
+    var Z : Bool {
+        get {
+            return psr.getBit(at: 1) == 1
+        }
+        set {
+            psr.setBit(at: 1, to: newValue ? 1 : 0)
+        }
+    }
+    var P : Bool {
+        get {
+            return psr.getBit(at: 0) == 1
+        }
+        set {
+            psr.setBit(at: 0, to: newValue ? 1 : 0)
+        }
+    }
     var r : [UInt16] = [UInt16].init(repeating: 0, count: 8)
     
-    subscript(index: UInt16) -> UInt16 {
-//        precond
+    enum PrivilegeMode {
+        case Supervisor
+        case User
+    }
+    
+    var privilegeMode : PrivilegeMode {
         get {
+            if (psr.getBit(at: 15) == 1) {
+                return .User
+            }
+            else {
+                return .Supervisor
+            }
+        }
+        set {
+            switch newValue {
+            case .User:
+                psr.setBit(at: 15, to: 1)
+            case .Supervisor:
+                psr.setBit(at: 15, to: 0)
+            }
+        }
+    }
+    
+    var priorityLevel : UInt16 {
+        return psr.getBits(high: 10, low: 8)
+    }
+    
+    subscript(index: UInt16) -> UInt16 {
+        
+        get {
+            precondition(0...7 ~= index, "Attempt to access illegal register no. \(index)")
+            
             return r[Int(index)]
         }
         // NOTE: sets only the value of the memory entry
         set {
+            precondition(0...7 ~= index, "Attempt to access illegal register no. \(index)")
+            
             r[Int(index)] = newValue
         }
     }
