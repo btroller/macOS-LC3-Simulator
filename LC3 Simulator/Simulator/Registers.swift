@@ -10,6 +10,27 @@ import Foundation
 
 class Registers {
     var pc : UInt16 = 0x3000
+    {
+        didSet {
+            mainVC?.pcChanged()
+        }
+    }
+//    {
+//        // TODO: set up notifications instead of messing with view here
+//        willSet {
+//            DispatchQueue.main.async {
+//                let rowView = self.mainVC?.memoryTableView.rowView(atRow: Int(self.pc), makeIfNecessary: false)
+//                //            rowView.backgroundColor = .none
+//            }
+//        }
+//        didSet {
+//            DispatchQueue.main.async {
+//                let rowView = self.mainVC?.memoryTableView.rowView(atRow: Int(self.pc), makeIfNecessary: false)
+//                rowView?.backgroundColor = .systemGreen
+//            }
+//        }
+//    }
+    
     var ir: UInt16 = 0
     var psr : UInt16 = 0x2 // set CC to N = 0, Z = 1, P = 0
 //    var cc : UInt16 = 0
@@ -38,6 +59,15 @@ class Registers {
         }
     }
     var r : [UInt16] = [UInt16].init(repeating: 0, count: 8)
+    // see book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
+    var savedSSP : UInt16 = 0
+    var savedUSP : UInt16 = 0
+    
+    var mainVC : MainViewController?
+    
+    func setMainVC(to vc : MainViewController) {
+        self.mainVC = vc
+    }
     
     enum PrivilegeMode {
         case Supervisor
@@ -64,7 +94,15 @@ class Registers {
     }
     
     var priorityLevel : UInt16 {
-        return psr.getBits(high: 10, low: 8)
+        get {
+            return psr.getBits(high: 10, low: 8)
+        }
+        set {
+            // NOTE: assumes that bits to replace with are in lowest 3 bits of passed in UInt16
+            psr.setBit(at: 8, to: newValue.getBit(at: 0))
+            psr.setBit(at: 9, to: newValue.getBit(at: 1))
+            psr.setBit(at: 10, to: newValue.getBit(at: 2))
+        }
     }
     
     subscript(index: UInt16) -> UInt16 {

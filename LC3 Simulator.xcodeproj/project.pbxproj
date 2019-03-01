@@ -7,20 +7,45 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B510E9862224837D007EFA75 /* ConsoleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B510E9842224837D007EFA75 /* ConsoleViewController.swift */; };
+		B510E98A2225191C007EFA75 /* ConsoleWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B510E9882225191C007EFA75 /* ConsoleWindowController.swift */; };
+		B510E98F22251E80007EFA75 /* ConsoleInputQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B510E98E22251E80007EFA75 /* ConsoleInputQueue.swift */; };
+		B510E9972225214C007EFA75 /* LC3_SimulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B510E9962225214C007EFA75 /* LC3_SimulatorTests.swift */; };
+		B510E99F2225228A007EFA75 /* ConsoleInputQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B510E99E2225228A007EFA75 /* ConsoleInputQueueTests.swift */; };
 		B51AC22F2175673B00132D60 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51AC22E2175673B00132D60 /* AppDelegate.swift */; };
-		B51AC2312175673B00132D60 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51AC2302175673B00132D60 /* ViewController.swift */; };
+		B51AC2312175673B00132D60 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51AC2302175673B00132D60 /* MainViewController.swift */; };
 		B51AC2332175673C00132D60 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B51AC2322175673C00132D60 /* Assets.xcassets */; };
 		B51AC2362175673C00132D60 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B51AC2342175673C00132D60 /* Main.storyboard */; };
 		B532AECC21C8BAEC00A5281C /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B532AECB21C8BAEC00A5281C /* Registers.swift */; };
 		B532AECE21C8BCC900A5281C /* Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B532AECD21C8BCC900A5281C /* Memory.swift */; };
 		B5624F9621C2E9F900B179AA /* Simulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5624F9521C2E9F900B179AA /* Simulator.swift */; };
+		B58EA930222852F700A08D53 /* lc3web-gh-pages in Resources */ = {isa = PBXBuildFile; fileRef = B58EA92F222852F700A08D53 /* lc3web-gh-pages */; };
+		B58EA932222860A300A08D53 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58EA931222860A300A08D53 /* MainWindowController.swift */; };
+		B58EA9342228E89100A08D53 /* Number Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58EA9332228E89100A08D53 /* Number Formatters.swift */; };
 		B5A36AE721FD9503002F7A86 /* lc3OS.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A36AE621FD9503002F7A86 /* lc3OS.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B510E9992225214C007EFA75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B51AC2232175673B00132D60 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B51AC22A2175673B00132D60;
+			remoteInfo = "LC3 Simulator";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		B510E9842224837D007EFA75 /* ConsoleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleViewController.swift; sourceTree = "<group>"; };
+		B510E9882225191C007EFA75 /* ConsoleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleWindowController.swift; sourceTree = "<group>"; };
+		B510E98E22251E80007EFA75 /* ConsoleInputQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleInputQueue.swift; sourceTree = "<group>"; };
+		B510E9942225214C007EFA75 /* LC3 SimulatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "LC3 SimulatorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B510E9962225214C007EFA75 /* LC3_SimulatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LC3_SimulatorTests.swift; sourceTree = "<group>"; };
+		B510E9982225214C007EFA75 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B510E99E2225228A007EFA75 /* ConsoleInputQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleInputQueueTests.swift; sourceTree = "<group>"; };
 		B51AC22B2175673B00132D60 /* LC3 Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LC3 Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B51AC22E2175673B00132D60 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B51AC2302175673B00132D60 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		B51AC2302175673B00132D60 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		B51AC2322175673C00132D60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B51AC2352175673C00132D60 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B51AC2372175673C00132D60 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -28,10 +53,20 @@
 		B532AECB21C8BAEC00A5281C /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 		B532AECD21C8BCC900A5281C /* Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memory.swift; sourceTree = "<group>"; };
 		B5624F9521C2E9F900B179AA /* Simulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Simulator.swift; sourceTree = "<group>"; };
+		B58EA92F222852F700A08D53 /* lc3web-gh-pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "lc3web-gh-pages"; path = "../../../Downloads/lc3web-gh-pages"; sourceTree = "<group>"; };
+		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
+		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B510E9912225214C007EFA75 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B51AC2282175673B00132D60 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -42,11 +77,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B510E9952225214C007EFA75 /* LC3 SimulatorTests */ = {
+			isa = PBXGroup;
+			children = (
+				B510E99E2225228A007EFA75 /* ConsoleInputQueueTests.swift */,
+				B510E9962225214C007EFA75 /* LC3_SimulatorTests.swift */,
+				B510E9982225214C007EFA75 /* Info.plist */,
+			);
+			path = "LC3 SimulatorTests";
+			sourceTree = "<group>";
+		};
 		B51AC2222175673B00132D60 = {
 			isa = PBXGroup;
 			children = (
 				B51AC22D2175673B00132D60 /* LC3 Simulator */,
+				B510E9952225214C007EFA75 /* LC3 SimulatorTests */,
 				B51AC22C2175673B00132D60 /* Products */,
+				B58EA92F222852F700A08D53 /* lc3web-gh-pages */,
 			);
 			sourceTree = "<group>";
 		};
@@ -54,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				B51AC22B2175673B00132D60 /* LC3 Simulator.app */,
+				B510E9942225214C007EFA75 /* LC3 SimulatorTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -62,22 +110,61 @@
 			isa = PBXGroup;
 			children = (
 				B51AC22E2175673B00132D60 /* AppDelegate.swift */,
-				B51AC2302175673B00132D60 /* ViewController.swift */,
-				B51AC2322175673C00132D60 /* Assets.xcassets */,
+				B58EA931222860A300A08D53 /* MainWindowController.swift */,
+				B51AC2302175673B00132D60 /* MainViewController.swift */,
+				B58EA92E222793BC00A08D53 /* Simulator */,
+				B58EA92D2227938500A08D53 /* Console */,
 				B51AC2342175673C00132D60 /* Main.storyboard */,
-				B5624F9521C2E9F900B179AA /* Simulator.swift */,
-				B532AECD21C8BCC900A5281C /* Memory.swift */,
-				B5A36AE621FD9503002F7A86 /* lc3OS.swift */,
-				B532AECB21C8BAEC00A5281C /* Registers.swift */,
 				B51AC2372175673C00132D60 /* Info.plist */,
+				B51AC2322175673C00132D60 /* Assets.xcassets */,
 				B51AC2382175673C00132D60 /* LC3Simulator.entitlements */,
 			);
 			path = "LC3 Simulator";
 			sourceTree = "<group>";
 		};
+		B58EA92D2227938500A08D53 /* Console */ = {
+			isa = PBXGroup;
+			children = (
+				B510E9882225191C007EFA75 /* ConsoleWindowController.swift */,
+				B510E9842224837D007EFA75 /* ConsoleViewController.swift */,
+				B510E98E22251E80007EFA75 /* ConsoleInputQueue.swift */,
+			);
+			path = Console;
+			sourceTree = "<group>";
+		};
+		B58EA92E222793BC00A08D53 /* Simulator */ = {
+			isa = PBXGroup;
+			children = (
+				B5624F9521C2E9F900B179AA /* Simulator.swift */,
+				B532AECB21C8BAEC00A5281C /* Registers.swift */,
+				B532AECD21C8BCC900A5281C /* Memory.swift */,
+				B5A36AE621FD9503002F7A86 /* lc3OS.swift */,
+				B58EA9332228E89100A08D53 /* Number Formatters.swift */,
+			);
+			path = Simulator;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B510E9932225214C007EFA75 /* LC3 SimulatorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B510E99B2225214C007EFA75 /* Build configuration list for PBXNativeTarget "LC3 SimulatorTests" */;
+			buildPhases = (
+				B510E9902225214C007EFA75 /* Sources */,
+				B510E9912225214C007EFA75 /* Frameworks */,
+				B510E9922225214C007EFA75 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B510E99A2225214C007EFA75 /* PBXTargetDependency */,
+			);
+			name = "LC3 SimulatorTests";
+			productName = "LC3 SimulatorTests";
+			productReference = B510E9942225214C007EFA75 /* LC3 SimulatorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		B51AC22A2175673B00132D60 /* LC3 Simulator */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B51AC23B2175673C00132D60 /* Build configuration list for PBXNativeTarget "LC3 Simulator" */;
@@ -101,10 +188,14 @@
 		B51AC2232175673B00132D60 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1000;
+				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = "Benjamin Troller";
 				TargetAttributes = {
+					B510E9932225214C007EFA75 = {
+						CreatedOnToolsVersion = 10.1;
+						TestTargetID = B51AC22A2175673B00132D60;
+					};
 					B51AC22A2175673B00132D60 = {
 						CreatedOnToolsVersion = 10.0;
 						LastSwiftMigration = 1010;
@@ -125,15 +216,24 @@
 			projectRoot = "";
 			targets = (
 				B51AC22A2175673B00132D60 /* LC3 Simulator */,
+				B510E9932225214C007EFA75 /* LC3 SimulatorTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B510E9922225214C007EFA75 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B51AC2292175673B00132D60 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B58EA930222852F700A08D53 /* lc3web-gh-pages in Resources */,
 				B51AC2332175673C00132D60 /* Assets.xcassets in Resources */,
 				B51AC2362175673C00132D60 /* Main.storyboard in Resources */,
 			);
@@ -142,20 +242,42 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B510E9902225214C007EFA75 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B510E99F2225228A007EFA75 /* ConsoleInputQueueTests.swift in Sources */,
+				B510E9972225214C007EFA75 /* LC3_SimulatorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B51AC2272175673B00132D60 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B51AC2312175673B00132D60 /* ViewController.swift in Sources */,
+				B51AC2312175673B00132D60 /* MainViewController.swift in Sources */,
 				B51AC22F2175673B00132D60 /* AppDelegate.swift in Sources */,
 				B532AECC21C8BAEC00A5281C /* Registers.swift in Sources */,
+				B58EA9342228E89100A08D53 /* Number Formatters.swift in Sources */,
 				B532AECE21C8BCC900A5281C /* Memory.swift in Sources */,
+				B58EA932222860A300A08D53 /* MainWindowController.swift in Sources */,
+				B510E98F22251E80007EFA75 /* ConsoleInputQueue.swift in Sources */,
+				B510E9862224837D007EFA75 /* ConsoleViewController.swift in Sources */,
 				B5A36AE721FD9503002F7A86 /* lc3OS.swift in Sources */,
 				B5624F9621C2E9F900B179AA /* Simulator.swift in Sources */,
+				B510E98A2225191C007EFA75 /* ConsoleWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B510E99A2225214C007EFA75 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B51AC22A2175673B00132D60 /* LC3 Simulator */;
+			targetProxy = B510E9992225214C007EFA75 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		B51AC2342175673C00132D60 /* Main.storyboard */ = {
@@ -169,6 +291,46 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		B510E99C2225214C007EFA75 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 37BM98M5W6;
+				INFOPLIST_FILE = "LC3 SimulatorTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bentroller.LC3-SimulatorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LC3 Simulator.app/Contents/MacOS/LC3 Simulator";
+			};
+			name = Debug;
+		};
+		B510E99D2225214C007EFA75 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 37BM98M5W6;
+				INFOPLIST_FILE = "LC3 SimulatorTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bentroller.LC3-SimulatorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LC3 Simulator.app/Contents/MacOS/LC3 Simulator";
+			};
+			name = Release;
+		};
 		B51AC2392175673C00132D60 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -326,6 +488,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B510E99B2225214C007EFA75 /* Build configuration list for PBXNativeTarget "LC3 SimulatorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B510E99C2225214C007EFA75 /* Debug */,
+				B510E99D2225214C007EFA75 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B51AC2262175673B00132D60 /* Build configuration list for PBXProject "LC3 Simulator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

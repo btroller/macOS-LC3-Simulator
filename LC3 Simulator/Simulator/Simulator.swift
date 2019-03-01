@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Cocoa
 
 // Q: should I include a "step" button to only execute 1 instruction? A: I think so
 // what should do if non-implemented/reserved instruction? send to exception handler? see current spot in book
@@ -17,12 +18,33 @@ import Foundation
 // consider making everything rewindable like Time Machine so you can easily undo some number of past actions -- could be simple and just have a copy of registers/simulator (use struct so that it's very easy) or intelligently make note of everything that's changed and rewind from there
 // figure out when to stop executing for each case of step in, step out, etc -- should it be based on returning to an address (easy enough to store a copy w/ a let constant) or do I wait until a specific return happens? should notice after instruciton executes and PC is updated -- but it's not as simple as seeing that the PC is where it would've been otherwise, b/c that's not necessarily returning with RET or similar. You could just wind up there serendipitously through a mistake if somehting like JMP to lower-number address, keep executing and don't return until go through original code and hit original jump, htne pause. That's not really the same as a normal RET
 
+// when character is read, immediately output it to screen, then set kbsr to appropriate value (if more in buffer, still 1, otherwise 0)
+// TODO: use IR?
+
+//prefs : follow PC, allow invalid ops? maybe hold off on invalid ops for initial release
+// if implement jump to label, only exact match on label?
+// allow "jump to addresss" and "jump to PC" in menu? probably only both if don't use search bar
+
 class Simulator {
     
     // MARK: state-keeping
     var registers = Registers()
     var memory = Memory()
+    var mainVC : MainViewController!
+    var consoleVC : ConsoleViewController {
+        return mainVC.consoleVC!
+    }
     
+    let kKeyboardPriorityLevel : UInt16 = 4
+    
+    func setMainVC(to vc : MainViewController) {
+        self.mainVC = vc
+//        self.consoleVC = mainVC.consoleVC
+        memory.setMainVC(to: vc)
+        registers.setMainVC(to: vc)
+    }
+    
+    // TODO: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
     var nextInstructionEntry : Memory.Entry {
         return memory[registers.pc]
     }
@@ -43,10 +65,28 @@ class Simulator {
         let expandedVector = vector + 0x0100
         // 6: The PC is loaded with the contents of memory location xOlOO or xOlOl, the address of the first instruction in the corresponding exception service routine.
         registers.pc = memory[expandedVector].value
+        
+        preconditionFailure("TODO: implement exceptions")
     }
     
-    func executeNextInstruction() {
-        // TODO: check if interrupt to be dealt with
+    // ONLY FOR KEYBOARD
+    func executeInterrupt() {
+        // 1: set privilege mode to supervisor
+        registers.privilegeMode = .Supervisor
+        // 2: set priority level to PL4 (priority of keyboard)
+        registers.priorityLevel = kKeyboardPriorityLevel
+        // TODO 3: Load R6 with SSP if not already there
+        // TODO 4: push PSR and PC of interrupted process onto supervisor stack
+        // 5: keyboard supplies its 8-bit interrupt vector
+        let interruptVector : UInt16 = 0x80
+        // 6: processor expands vector
+        let expandedInterruptVector = interruptVector + 0x100
+        // 7: load PC with contents of memory at 0x180
+        registers.pc = memory.getValue(at: expandedInterruptVector)
+    }
+    
+    // TODO: make parameter nil?
+    func executeNextInstruction(afterMemoryModification: (Int) -> Void) {
         
         
         // execute instruction normally
@@ -59,11 +99,9 @@ class Simulator {
         print(value.instructionType)
         print(value)
         switch (value.instructionType) {
-            
         case .ADDR:
             registers[value.SR_DR] = registers[value.SR1] &+ registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
-//            print("was add r")
         case .ADDI:
             registers[value.SR_DR] = registers[value.SR1] &+ UInt16(bitPattern: value.sextImm5)
             registers.setCC(basedOn: registers[value.SR_DR])
@@ -72,7 +110,7 @@ class Simulator {
             registers[value.SR_DR] = registers[value.SR1] & registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
         case .ANDI:
-            registers[value.SR_DR] = registers[value.SR1] &+ UInt16(bitPattern: value.sextImm5)
+            registers[value.SR_DR] = registers[value.SR1] & UInt16(bitPattern: value.sextImm5)
             registers.setCC(basedOn: registers[value.SR_DR])
 //            registers[value.SR_DR] = UInt16(bitPattern: Int16(bitPattern: registers[value.SR1]) & value.sextImm5)
         case .BR:
@@ -89,13 +127,16 @@ class Simulator {
             registers[7] = registers.pc
             registers.pc = registers[value.BaseR]
         case .LD:
-            registers[value.SR_DR] = memory[registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)].value
+            registers[value.SR_DR] = memory.getValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9))
+//            registers[value.SR_DR] = memory[registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)].value
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDI:
-            registers[value.SR_DR] = memory[memory[registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)].value].value
+            registers[value.SR_DR] = memory.getValue(at: memory.getValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)))
+//            registers[value.SR_DR] = memory[memory[registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)].value].value
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDR:
-            registers[value.SR_DR] = memory[value.BaseR &+ UInt16(bitPattern: value.sextOffset6)].value
+            registers[value.SR_DR] = memory.getValue(at: registers[value.BaseR] &+ UInt16(bitPattern: value.sextOffset6))
+//            registers[value.SR_DR] = memory[registers[value.BaseR] &+ UInt16(bitPattern: value.sextOffset6)].value
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LEA:
             registers[value.SR_DR] = registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)
@@ -108,9 +149,11 @@ class Simulator {
             registers.pc = registers[7]
         case .RTI:
             if (registers.psr.getBit(at: 15) == 0) {
-                registers.pc = memory[registers.r[6]].value
+                registers.pc = memory.getValue(at: registers.r[6])
+//                registers.pc = memory[registers.r[6]].value
                 registers.r[6] += 1
-                let temp = memory[registers.r[6]].value
+                let temp = memory.getValue(at: registers.r[6])
+//                let temp = memory[registers.r[6]].value
                 registers.r[6] += 1
                 registers.psr = temp
             }
@@ -119,14 +162,21 @@ class Simulator {
                 executeException(.privilegeModeViolation)
             }
         case .ST:
-            memory[registers.pc + UInt16(bitPattern: value.sextPCoffset9)].value = registers[value.SR_DR]
+            memory.setValue(at: registers.pc + UInt16(bitPattern: value.sextPCoffset9), to: registers[value.SR_DR], then: afterMemoryModification)
+//            memory[registers.pc + UInt16(bitPattern: value.sextPCoffset9)].value = registers[value.SR_DR]
         case .STI:
-            memory[memory[registers.pc + UInt16(bitPattern: value.sextPCoffset9)].value].value = registers[value.SR_DR]
+            let effectiveAddress = memory.getValue(at: registers.pc + UInt16(bitPattern: value.sextPCoffset9))
+//            let effectiveAddress = memory[registers.pc + UInt16(bitPattern: value.sextPCoffset9)].value
+            print(effectiveAddress)
+            memory.setValue(at: effectiveAddress, to: registers[value.SR_DR], then: afterMemoryModification)
+//            memory[memory[registers.pc + UInt16(bitPattern: value.sextPCoffset9)].value].value = registers[value.SR_DR]
         case .STR:
-            memory[registers[value.BaseR] + UInt16(bitPattern: value.sextPCoffset9)].value = registers[value.SR_DR]
+            memory.setValue(at: registers[value.BaseR] + UInt16(bitPattern: value.sextOffset6), to: registers[value.SR_DR], then: afterMemoryModification)
+//            memory[registers[value.BaseR] + UInt16(bitPattern: value.sextPCoffset9)].value = registers[value.SR_DR]
         case .TRAP:
             registers[7] = registers.pc
-            registers.pc = memory[value.trapVect8].value
+            registers.pc = memory.getValue(at: value.trapVect8)
+//            registers.pc = memory[value.trapVect8].value
         case .NOT_IMPLEMENTED:
             // trigger illegal opcode exception
             executeException(.illegalOpcode)
@@ -135,6 +185,27 @@ class Simulator {
         }
         
         print(entryToExecute.value)
+        print("registers: \(registers.r)")
+        
+        // TODO: update KBSR and KBDR
+        
+        // Update I/O stuff
+        if (consoleVC.queue.hasNext && !memory.KBSRIsSet) {
+            //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
+            memory[Memory.KBDR].value = consoleVC.queue.pop()!.toUInt16ASCII
+            memory[Memory.KBSR].value.setBit(at: 15, to: 1)
+        }
+        if (!memory.DSRIsSet) {
+            //            consoleVC.log(memory[Memory.DDR].value.ascii)
+            // reset DSR if not set
+            // can safely do b/c I always deal w/ input in DDR - see Memory for other side of this
+            memory[Memory.DSR].value.setBit(at: 15, to: 1)
+        }
+        
+        // TODO: check if interrupt to be dealt with
+        if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
+            executeInterrupt()
+        }
     }
     
     // run until have returned to same level as started at?
@@ -151,11 +222,27 @@ class Simulator {
         
     }
     
-    func runForever() {
+    var shouldResumeRunningForever = false
+    
+    func runForever(then : (Int) -> Void, shouldStopExecuting: () -> Bool) {
+        if shouldResumeRunningForever {
+            executeNextInstruction(afterMemoryModification: then)
+            shouldResumeRunningForever = false
+        }
+        while (!nextInstructionEntry.shouldBreak && !shouldStopExecuting()) {
+            executeNextInstruction(afterMemoryModification: then)
+        }
         
+        shouldResumeRunningForever = true
     }
     
     func stopExecution() {
         
+    }
+}
+
+extension Character {
+    var toUInt16ASCII : UInt16 {
+        return UInt16(truncating: self.unicodeScalars.first!.value as NSNumber)
     }
 }

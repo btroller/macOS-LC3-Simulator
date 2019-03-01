@@ -6,18 +6,44 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
+// TODO: on write to memory, check if messing w/ kbsr and kbdr
+// TODO: see if writing to kbsr and dsr is allowed
+
 import Foundation
+import Cocoa
 
 class Memory {
     private var entries : [Entry] = []
     
+    static let KBSR : UInt16 = 0xFE00
+    static let KBDR : UInt16 = 0xFE02
+    static let DSR : UInt16  = 0xFE04
+    static let DDR : UInt16  = 0xFE06
+    static let MCR : UInt16  = 0xFFFE
+    
+    var mainVC : MainViewController!  //NSApp.mainWindow?.contentViewController! as! MainViewController
+    
+    func setMainVC(to vc : MainViewController) {
+        mainVC = vc
+    }
+    
+    var KBSRIsSet : Bool {
+        return self[Memory.KBSR].value.getBit(at: 15) == 1
+    }
+    
+    var KBIEIsSet : Bool {
+        return self[Memory.KBSR].value.getBit(at: 14) == 1
+    }
+    
+    var DSRIsSet : Bool {
+        return self[Memory.DSR].value & 0x8000 == 0x8000
+    }
+    
+    // TODO: make static singleton instead of passing in `entries`?
     class Entry {
-        var value : UInt16 = 0
+        var value : UInt16  = 0
         var shouldBreak : Bool = false
         var label : String?
-//        var instructionType : InstructionType {
-//            value.instructionType
-//        }
         
         enum InstructionType {
             case ADDR
@@ -47,7 +73,8 @@ class Memory {
         }
         
         // Used to initalize with default values only
-        init() {}
+        init() {
+        }
     }
     
     func instructionString(at address: Int) -> String {
@@ -173,6 +200,10 @@ class Memory {
         for (label, address) in LC3OS.osSymbols {
             entries[address].label = label
         }
+        
+        // set breakpoint at end of TRAP_HALT so it stops there by default
+        let trapHaltRETIndex = 0xFD7C
+        entries[trapHaltRETIndex].shouldBreak = true
     
     }
     
@@ -183,6 +214,7 @@ class Memory {
         }
     }
     
+    // TODO: deal with bad data gracefully, probably print error
     // Loads in a single program
     func loadProgramFromFile(at url: URL) {
         let fileData = NSData(contentsOf: url)!
@@ -243,14 +275,49 @@ class Memory {
 
 extension Memory {
     
+    // TODO: deal with potential issue : There are 0xFFFF addressable locations using UInt16, but actually 0xFFFF + 1 addresses in the machine
     subscript(index: UInt16) -> Entry {
         get {
             return entries[Int(index)]
         }
         // NOTE: sets only the value of the memory entry
         set {
+//            // ERROR: NOT FIRING, MY ASSUMPTION IS LIKELY BAD
+//            // SHOULD PROBABLY WATCH VALUE IN entry SPECIFICALLY
+//            if (index == Memory.DDR) {
+////                mainVC.consoleVC?.log(newValue.value.ascii)
+//                self[Memory.DSR].value.setBit(at: 15, to: 0)
+//            }
             entries[Int(index)] = newValue
         }
+    }
+    
+    func setValue(at row : UInt16, to newValue : UInt16, then : (Int) -> Void) {
+        // can do this safely because DDR will always be ready to read as I clear it once each instruction is run
+        if (row == Memory.DDR) {
+            mainVC.consoleVC?.log(newValue.ascii)
+            self[Memory.DSR].value.setBit(at: 15, to: 0)
+        }
+        self[row].value = newValue
+        then(Int(row))
+    }
+    
+    func getValue(at index : UInt16) -> UInt16 {
+        let currentVal = self[index].value
+        
+        // update KBSR and KBDR if KBDR is read from to reflect current state
+        if (index == Memory.KBDR) {
+            if let queue = mainVC.consoleVC?.queue, queue.hasNext {
+                self[index].value = queue.pop()!.toUInt16ASCII
+                self[Memory.KBSR].value.setBit(at: 15, to: 1)
+            }
+            else {
+                self[index].value = 0
+                self[Memory.KBSR].value.setBit(at: 15, to: 0)
+            }
+        }
+        
+        return currentVal
     }
     
 }
@@ -266,6 +333,12 @@ extension UInt16 {
         assert(val == 0 || val == 1)
         self = (self & ~(1 << pos)) | (val << pos)
     }
+    
+//    // WRONG as is
+//    mutating func setBits(high : Int, low : Int, to newVals: UInt16) {
+//        // make sure that only the bits
+//        assert(newVals.getBits(high: high, low: low) == 0)
+//    }
     
 //    var numSignificantBits : UInt16 {
 //        var numSigBits : UInt16 = 0
@@ -421,5 +494,9 @@ extension UInt16 {
     
     var P : Bool {
         return getBit(at: 9) == 1
+    }
+    
+    var ascii : Character {
+        return Character(UnicodeScalar(UInt8(getBits(high: 7, low: 0))))
     }
 }

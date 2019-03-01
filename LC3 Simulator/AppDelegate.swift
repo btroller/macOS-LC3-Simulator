@@ -11,30 +11,23 @@ import Cocoa
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-
-
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
-    }
+//    var consoleWindowController: NSWindowController!
+//
+//    func applicationDidFinishLaunching(_ aNotification: Notification) {
+//        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+//
+//        if let vc = storyboard.instantiateController(withIdentifier: "consoleViewControllerID") as? ConsoleViewController {
+//            let consoleWindow = NSWindow(contentViewController: vc)
+//            consoleWindow.makeKeyAndOrderFront(self)
+//            consoleWindowController = NSWindowController(window: consoleWindow)
+//            consoleWindowController.showWindow(self)
+//        }
+//
+//    }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-    
-//    @IBAction func openDocument(_ sender: Any?) {
-//        print("Here")
-//        guard let vc = NSApp.keyWindow?.contentViewController as? ViewController else {
-//            return
-//        }
-//        vc.openDocument()
-//    }
-    
-//    func openDocument(withContentsOf url: URL,
-//                      display displayDocument: Bool,
-//                      completionHandler: @escaping (NSDocument?, Bool, Error?) -> Void) {
-//        print("Here")
-//    }
-
 
 }
 

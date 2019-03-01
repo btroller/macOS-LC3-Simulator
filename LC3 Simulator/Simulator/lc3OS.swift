@@ -143,7 +143,12 @@ class LC3OS {
         "TRAP_PUTS":  0x0450,
         "TRAP_IN":    0x04A0,
         "TRAP_PUTSP": 0x04E0,
-        "TRAP_HALT":  0xFD70
+        "TRAP_HALT":  0xFD70,
+        "KBSR":       0xFE00,
+        "KBDR":       0xFE02,
+        "DSR":        0xFE04,
+        "DDR":        0xFE06,
+        "MCR":        0xFFFE
     ]
     
 }
