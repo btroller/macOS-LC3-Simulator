@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14460.31"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -125,6 +125,12 @@
                                                 <action selector="stepOutClickedWithSender:" target="Ady-hI-5gd" id="nCr-Fb-q2V"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="Wah-N1-aHD"/>
+                                        <menuItem title="Scroll to PC" keyEquivalent="j" id="1v1-eV-oFK">
+                                            <connections>
+                                                <action selector="scrollToPCClickedWithSender:" target="Ady-hI-5gd" id="jmy-bQ-H7j"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
@@ -182,7 +188,7 @@
                                                 <items>
                                                     <menuItem title="Find…" tag="1" keyEquivalent="f" id="Xz5-n4-O0W">
                                                         <connections>
-                                                            <action selector="performFindPanelAction:" target="Ady-hI-5gd" id="cD7-Qs-BN4"/>
+                                                            <action selector="findMenuItemClickedWithSender:" target="Ady-hI-5gd" id="pA4-BP-PDR"/>
                                                         </connections>
                                                     </menuItem>
                                                     <menuItem title="Find and Replace…" tag="12" keyEquivalent="f" id="YEy-JH-Tfz">
@@ -206,7 +212,7 @@
                                                             <action selector="performFindPanelAction:" target="Ady-hI-5gd" id="U76-nv-p5D"/>
                                                         </connections>
                                                     </menuItem>
-                                                    <menuItem title="Jump to Selection" keyEquivalent="j" id="S0p-oC-mLd">
+                                                    <menuItem title="Jump to PC" keyEquivalent="j" id="S0p-oC-mLd">
                                                         <connections>
                                                             <action selector="centerSelectionInVisibleArea:" target="Ady-hI-5gd" id="IOG-6D-g5B"/>
                                                         </connections>
@@ -625,19 +631,6 @@
                                                 <action selector="runToolbarCustomizationPalette:" target="Ady-hI-5gd" id="pQI-g3-MTW"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="hB3-LF-h0Y"/>
-                                        <menuItem title="Show Sidebar" keyEquivalent="s" id="kIP-vf-haE">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                                            <connections>
-                                                <action selector="toggleSourceList:" target="Ady-hI-5gd" id="iwa-gc-5KM"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Enter Full Screen" keyEquivalent="f" id="4J7-dP-txa">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                                            <connections>
-                                                <action selector="toggleFullScreen:" target="Ady-hI-5gd" id="dU3-MA-1Rq"/>
-                                            </connections>
-                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
@@ -711,13 +704,15 @@
                                     <searchField key="view" wantsLayer="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" textCompletion="NO" id="SFS-b5-0oD">
                                         <rect key="frame" x="2" y="14" width="94" height="22"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <searchFieldCell key="cell" selectable="YES" editable="YES" borderStyle="bezel" placeholderString="Address" usesSingleLineMode="YES" bezelStyle="round" id="a7S-ZV-DNG">
+                                        <searchFieldCell key="cell" selectable="YES" editable="YES" borderStyle="bezel" placeholderString="Address" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="a7S-ZV-DNG">
                                             <font key="font" metaFont="system"/>
                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                         </searchFieldCell>
                                         <connections>
-                                            <outlet property="delegate" destination="C3P-Br-Hk5" id="vt7-hX-IVP"/>
+                                            <action selector="searchingFinished:" target="Oky-zY-oP4" id="l5p-FI-PuL"/>
+                                            <outlet property="delegate" destination="C3P-Br-Hk5" id="gAH-V8-ghd"/>
+                                            <outlet property="formatter" destination="eaj-zQ-2KS" id="ISB-sU-rtx"/>
                                         </connections>
                                     </searchField>
                                 </toolbarItem>
@@ -813,6 +808,22 @@
                                         <action selector="stopClickedWithSender:" target="Oky-zY-oP4" id="bwK-Z3-kUv"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="7132E1BB-28FD-4AFD-8FBE-60D57F2EB54A" label="Scroll to PC" paletteLabel="Scroll to PC" image="NSActionTemplate" id="oPp-11-yrL">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="37" height="20"/>
+                                    <size key="maxSize" width="38" height="32"/>
+                                    <button key="view" verticalHuggingPriority="750" id="zWd-lZ-Ecs">
+                                        <rect key="frame" x="16" y="14" width="37" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSActionTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="SSE-xR-x7T">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="scrollToPCClickedWithSender:" target="Oky-zY-oP4" id="rBk-lI-ooO"/>
+                                    </connections>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="MtU-zi-Siu"/>
@@ -831,10 +842,13 @@
                         </connections>
                     </window>
                     <connections>
+                        <outlet property="addressSearchBarItem" destination="C3P-Br-Hk5" id="EGZ-Hw-Z2t"/>
+                        <outlet property="addressSearchField" destination="SFS-b5-0oD" id="odT-Ux-K8u"/>
                         <segue destination="XfG-lQ-9wD" kind="relationship" relationship="window.shadowedContentViewController" id="cq2-FE-JQM"/>
                     </connections>
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <customFormatter id="eaj-zQ-2KS" customClass="SearchBarHexNumberFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
             </objects>
             <point key="canvasLocation" x="175" y="284"/>
         </scene>
@@ -888,6 +902,10 @@
                                         </textView>
                                     </subviews>
                                 </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="BSI-ak-VBS">
+                                    <rect key="frame" x="-100" y="-100" width="480" height="16"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
                                 <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="RE0-jx-XHK">
                                     <rect key="frame" x="464" y="0.0" width="16" height="270"/>
                                     <autoresizingMask key="autoresizingMask"/>
@@ -1401,7 +1419,8 @@
                                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                             </tableHeaderCell>
-                                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="uaY-35-pAB">
+                                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" id="uaY-35-pAB">
+                                                                <customFormatter key="formatter" id="erE-0p-wD8" customClass="HexNumberFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
                                                                 <font key="font" metaFont="system"/>
                                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -1412,7 +1431,7 @@
                                                                     <rect key="frame" x="24" y="1" width="55" height="0.0"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                     <subviews>
-                                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1CN-d4-2U4">
+                                                                        <textField identifier="addressTextFieldID" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1CN-d4-2U4">
                                                                             <rect key="frame" x="0.0" y="-17" width="55" height="17"/>
                                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="center" title="Table View Cell" id="GTJ-sb-BY7">
@@ -1434,7 +1453,8 @@
                                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                             </tableHeaderCell>
-                                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="vTy-kR-0qU">
+                                                            <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" id="vTy-kR-0qU">
+                                                                <customFormatter key="formatter" id="5vR-cw-pdd" customClass="BinaryNumberFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
                                                                 <font key="font" metaFont="system"/>
                                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -1445,7 +1465,7 @@
                                                                     <rect key="frame" x="82" y="1" width="158" height="0.0"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                     <subviews>
-                                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kTA-hZ-KF2">
+                                                                        <textField identifier="binaryValueCellID" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kTA-hZ-KF2">
                                                                             <rect key="frame" x="0.0" y="-17" width="158" height="17"/>
                                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" alignment="center" title="Table View Cell" id="AYs-C4-bOS">
@@ -1453,6 +1473,10 @@
                                                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                             </textFieldCell>
+                                                                            <connections>
+                                                                                <outlet property="delegate" destination="XfG-lQ-9wD" id="K8W-xg-MSE"/>
+                                                                                <outlet property="formatter" destination="5vR-cw-pdd" id="TF3-Ig-ok6"/>
+                                                                            </connections>
                                                                         </textField>
                                                                     </subviews>
                                                                     <connections>
@@ -1479,14 +1503,18 @@
                                                                     <rect key="frame" x="243" y="1" width="56" height="0.0"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                     <subviews>
-                                                                        <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BHc-SB-r0p">
+                                                                        <textField identifier="hexValueCellID" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BHc-SB-r0p">
                                                                             <rect key="frame" x="0.0" y="-17" width="56" height="17"/>
                                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" alignment="center" title="Table View Cell" id="904-UO-2I1">
+                                                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" alignment="center" id="904-UO-2I1">
+                                                                                <customFormatter key="formatter" id="lOL-9j-c9s" customClass="HexNumberFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
                                                                                 <font key="font" metaFont="system"/>
                                                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                             </textFieldCell>
+                                                                            <connections>
+                                                                                <outlet property="delegate" destination="XfG-lQ-9wD" id="Rmg-Kd-8hJ"/>
+                                                                            </connections>
                                                                         </textField>
                                                                     </subviews>
                                                                     <connections>
@@ -1611,10 +1639,10 @@
     <resources>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSStatusNone" width="16" height="16"/>
-        <image name="Run2" width="38" height="38"/>
-        <image name="StepInIcon" width="64" height="64"/>
-        <image name="StepOutIcon" width="64" height="64"/>
-        <image name="StepOverIcon" width="38" height="38"/>
-        <image name="StopIcon" width="64" height="64"/>
+        <image name="Run2" width="19" height="19"/>
+        <image name="StepInIcon" width="32" height="32"/>
+        <image name="StepOutIcon" width="32" height="32"/>
+        <image name="StepOverIcon" width="19" height="19"/>
+        <image name="StopIcon" width="32" height="32"/>
     </resources>
 </document>

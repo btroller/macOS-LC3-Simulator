@@ -10,6 +10,9 @@ import Cocoa
 
 class MainWindowController: NSWindowController, NSWindowDelegate {
 
+    @IBOutlet weak var addressSearchField: NSSearchField!
+    @IBOutlet weak var addressSearchBarItem: NSToolbarItem!
+    
     override func windowDidLoad() {
         super.windowDidLoad()
     
@@ -23,3 +26,27 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
 }
+
+// MARK: make address search field the first responder after menu "find" item clicked
+extension MainWindowController {
+    
+    func makeAddressSearchFieldFirstResponder() {
+        DispatchQueue.main.async {
+//            self.addressSearchBarItem.
+            self.window?.makeFirstResponder(self.addressSearchField)
+        }
+    }
+    
+}
+
+//extension MainWindowController: NSSearchFieldDelegate {
+//
+//    func searchFieldDidStartSearching(_ sender: NSSearchField) {
+//        print("started")
+//    }
+//
+//    func searchFieldDidEndSearching(_ sender: NSSearchField) {
+//        print("ended")
+//    }
+//
+//}

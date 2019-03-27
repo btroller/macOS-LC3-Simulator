@@ -43,7 +43,7 @@ class ConsoleViewController: NSViewController {
         
         // use digits monospaced font
         // EVENTUALLY: make a standard monospaced font at least a choice - can't bundle SF Mono due to license
-        //  don't want to have inconsistent font in app
+        //  and don't want to have inconsistent font in app
         textView.font = NSFont.monospacedDigitSystemFont(ofSize: (textView.font?.pointSize)!, weight: NSFont.Weight.regular)
 
     }
@@ -51,14 +51,15 @@ class ConsoleViewController: NSViewController {
 }
 
 // TODO: ensure backspace works? might run in to trouble here
+// TODO: give some sort of error notifiaction when non-ASCII character is pasted?
 extension ConsoleViewController : NSTextViewDelegate {
     func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
         // TODO: ignore non-ASCII characters?
-        print("called with \(replacementString)")
+        print("called with \(String(describing: replacementString))")
         replacementString?.forEach({ (char) in
             if (char.isAscii) {
                 queue.push(char)
-                print("inserted \(char) (\(char.unicodeScalars.first))")
+                print("inserted \(char) (\(String(describing: char.unicodeScalars.first)))")
             }
             else {
                 print("didn't insert \(char)")

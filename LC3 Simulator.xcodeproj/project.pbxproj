@@ -57,6 +57,7 @@
 		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
+		B5A7DAA622496EE9001ABC03 /* lc3as */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = lc3as; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +91,7 @@
 		B51AC2222175673B00132D60 = {
 			isa = PBXGroup;
 			children = (
+				B5A7DAA622496EE9001ABC03 /* lc3as */,
 				B51AC22D2175673B00132D60 /* LC3 Simulator */,
 				B510E9952225214C007EFA75 /* LC3 SimulatorTests */,
 				B51AC22C2175673B00132D60 /* Products */,
@@ -194,11 +196,12 @@
 				TargetAttributes = {
 					B510E9932225214C007EFA75 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1020;
 						TestTargetID = B51AC22A2175673B00132D60;
 					};
 					B51AC22A2175673B00132D60 = {
 						CreatedOnToolsVersion = 10.0;
-						LastSwiftMigration = 1010;
+						LastSwiftMigration = 1020;
 					};
 				};
 			};
@@ -306,7 +309,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.bentroller.LC3-SimulatorTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LC3 Simulator.app/Contents/MacOS/LC3 Simulator";
 			};
 			name = Debug;
@@ -326,7 +329,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.bentroller.LC3-SimulatorTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LC3 Simulator.app/Contents/MacOS/LC3 Simulator";
 			};
 			name = Release;
@@ -462,7 +465,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.bentroller.LC3Simulator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -481,7 +484,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.bentroller.LC3Simulator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

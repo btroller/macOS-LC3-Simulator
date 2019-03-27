@@ -6,11 +6,15 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-// Question: Should I allow poorly-formatted instructions - ex. 0b1100_111_000_111111
-// Question: should I include NOP? (all 0s)
-// TODO: set up search for / jump to addresses
-// TODO: decide what PC indicator is
+// TODO: decide what PC indicator is - try changing color of row to green, also allow selecting of lines separately
+//   also figure out what to do if selected row is also PC - probably mix colors somehow
 // TODO: decide register UI
+// TODO: only enable buttons when they make sense
+// TODO: add "Jump to PC" menu option
+// TODO: make search for address show result as selected and in middle of page if possible
+// TODO: disable editing of registers/memory (but still allow setting breakpoints) while running continuously
+// TODO: add "Set PC" option in context menu and menu bar (probably once selection of rows is available)
+
 
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
 
@@ -20,6 +24,7 @@ import Cocoa
 class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 
     var rowBeingEdited : Int?
+    var shouldStopExecuting : Bool = false
     
     let backgroundQueue = DispatchQueue.global(qos: .userInteractive)
     
@@ -74,14 +79,20 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
     
     @IBAction func stepOutClickedWithSender(_ sender : AnyObject) {
         print("step out clicked")
-        
+        assertionFailure("not implemented yet")
     }
-    
-    var shouldStopExecuting : Bool = false
     
     // TODO: stop running execution with
     @IBAction func stopClickedWithSender(_ sender: AnyObject) {
         shouldStopExecuting = true
+    }
+    
+    @IBAction func scrollToPCClickedWithSender(_ sender: AnyObject) {
+        DispatchQueue.main.async {
+            let pcRow = Int(self.simulator.registers.pc)
+//            self.memoryTableView.scrollRowToVisible(pcRow)
+            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(pcRow)
+        }
     }
     
     // MARK: Constants
@@ -108,6 +119,7 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
     }
 //    var window : NSWindow!
     
+    // NOTE: might also trigger for registers table view for now
     @objc func onItemDoubleClicked() {
         guard memoryTableView.clickedRow > 0 else { return }
         print("double clicked on row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn)")
@@ -121,10 +133,12 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
             break
         case 2:
             // value (binary) column
+            rowBeingEdited = memoryTableView.clickedRow
             memoryTableView.editColumn(2, row: memoryTableView.clickedRow, with: nil, select: false)
             break
         case 3:
             // value (hex) column
+            rowBeingEdited = memoryTableView.clickedRow
             memoryTableView.editColumn(3, row: memoryTableView.clickedRow, with: nil, select: false)
         default:
             print("default")
@@ -150,8 +164,15 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         memoryTableView.action = #selector(onItemClicked)
         memoryTableView.doubleAction = #selector(onItemDoubleClicked)
         
-        memoryTableView.scrollRowToVisible(0x3020)
-        memoryTableView.selectRowIndexes([Int(simulator.registers.pc)], byExtendingSelection: false)
+        // TODO: change to be dynamic
+        // scroll to place PC in middle of memory table view
+//        memoryTableView.scrollRowToVisible(0x3020)
+        DispatchQueue.main.async {
+            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
+        }
+        // show PC appropriately
+        pcChanged()
+//        memoryTableView.selectRowIndexes([Int(simulator.registers.pc)], byExtendingSelection: false)
 //        memoryTableView.
     }
 
@@ -184,14 +205,6 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
                 case false:
                 cellView.imageView?.image = kStatusNoneImage
             }
-            
-//            if row == 1 {
-//                cellView.imageView?.image = NSImage(imageLiteralResourceName: NSImage.goRightTemplateName)
-//            } else if row == 3 {
-//                cellView.imageView?.image = kStatusUnavailableIMage
-//            } else {
-//                cellView.imageView?.image = kStatusNoneImage
-//            }
             return cellView
         case "addressColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "addressCellID"), owner: self) as! NSTableCellView
@@ -202,15 +215,15 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
             let unformattedBinaryString = String(memory[UInt16(row)].value, radix: 2)
             var formattedBinaryString = String(repeating: "0", count: 16 - unformattedBinaryString.count) + unformattedBinaryString
-            formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 12))
-            formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 8))
-            formattedBinaryString.insert(" ", at: String.Index(encodedOffset: 4))
+            formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 12, in: formattedBinaryString))
+            formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 8, in: formattedBinaryString))
+            formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 4, in: formattedBinaryString))
             cellView.textField?.stringValue = formattedBinaryString
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
         case "valueHexColumnID":
             let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueHexCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = String(format: "x%04X", memory[UInt16(row)].value)
+            cellView.textField?.stringValue = String(format: "%04X", memory[UInt16(row)].value)
             cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
             return cellView
         case "labelColumnID":
@@ -264,24 +277,25 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         }
     }
 
+    // disable selection of all rows
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
         return false
     }
+    
+    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+        
+        switch tableColumn?.identifier.rawValue {
+        case "valueHexColumnID":
+            return memory[UInt16(row)].value
+        case "valueBinaryCellID":
+            return memory[UInt16(row)].value
+        default:
+            return nil
+        }
+        
+    }
 
 }
-
-
-//
-//extension ViewController: NSSearchFieldDelegate {
-//
-//    func searchFieldDidEndSearching(_ sender: NSSearchField) {
-//        if let cell = sender.cell as? NSSearchFieldCell {
-//            print("hello")
-//        }
-//        print("hi")
-//    }
-//
-//}
 
 // MARK: NSOpenSavePanelDelegate methods
 extension MainViewController : NSOpenSavePanelDelegate {
@@ -317,37 +331,164 @@ extension MainViewController : NSOpenSavePanelDelegate {
 extension MainViewController : NSTextFieldDelegate {
     
     func scanBinaryStringToUInt16(_ string : String) -> UInt16? {
-        return 0
+        let formatter = BinaryNumberFormatter()
+        var obj : AnyObject = 0 as AnyObject
+        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
+        if !formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+            return nil
+        }
+        
+        return obj as? UInt16
     }
     
     func scanHexStringToUInt16(_ string : String) -> UInt16? {
-        return 0
-    }
-    
-    // NOTE: Might need to change if IB settings don't keep to disallow editing of other columns
-    func tableView(_ tableView: NSTableView, shouldEdit tableColumn: NSTableColumn?, row: Int) -> Bool {
-        rowBeingEdited = row
-        return true
-    }
-    
-    func controlTextDidEndEditing(_ obj: Notification) {
-        print("here")
+        let formatter = HexNumberFormatter()
+        var obj : AnyObject = 0 as AnyObject
+        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
+        if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+            return obj as? UInt16
+        }
+        else {
+            return nil
+        }
     }
     
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
-        // if text makes sense
-        //  put new value into memory
+        // put new value into memory
         // reload table view
-        if let parsedString = scanBinaryStringToUInt16(fieldEditor.string) {
-            self.memory?[UInt16(rowBeingEdited!)].value = parsedString
+        DispatchQueue.main.async {
+            switch control.identifier?.rawValue {
+            case "hexValueCellID":
+                if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
+                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                }
+            case "binaryValueCellID":
+                if let parsedString = self.scanBinaryStringToUInt16(fieldEditor.string) {
+                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                }
+            default:
+                assertionFailure("Failed to match identifier of control in control()")
+            }
+
+            self.memoryTableView.reloadData(forRowIndexes: [self.rowBeingEdited!], columnIndexes: self.allColumnIndices)
         }
-        else if let parsedString = scanBinaryStringToUInt16(fieldEditor.string) {
-            self.memory?[UInt16(rowBeingEdited!)].value = parsedString
-        }
-        memoryTableView.reloadData(forRowIndexes: [rowBeingEdited!], columnIndexes: allColumnIndices)
+        
+        print("in control function, new string value \(fieldEditor.string)")
         
         return true
     }
+}
+
+// MARK: search bar stuff
+extension MainViewController {
+    
+    // TODO: implement better version
+    @IBAction func searchingFinished(_ sender: NSSearchField) {
+        if let scannedValue = scanHexStringToUInt16(sender.stringValue) {
+            DispatchQueue.main.async {
+                self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(scannedValue))
+            }
+        }
+    }
+    
+    @IBAction func findMenuItemClickedWithSender(_ sender: Any) {
+        if let mainWindowController = NSApp.mainWindow?.windowController as? MainWindowController {
+            mainWindowController.makeAddressSearchFieldFirstResponder()
+        }
+    }
+    
+}
+
+extension NSTableView {
+    
+    // TODO: implement correctly
+    // NOTE: relies on caller executing this on main thread
+    func scrollToMakeRowVisibleWithSpacing(_ row: Int) {
+        let visibleRect = self.visibleRect
+        let visibleRange = self.rows(in: visibleRect)
+        
+        self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
+        self.scrollRowToVisible(max(row - 3, 0))
+        
+        /*
+        let scrollTo : Int
+         
+        if row >= self.numberOfRows {
+            scrollTo = self.numberOfRows - 1
+        }
+        else if row <= 1 {
+            scrollTo = row
+        }
+        else if row < visibleRange.lowerBound {
+            scrollTo = max(row - 3, 0)
+        }
+        else /* if row > visibleRange.upperBound */ {
+            scrollTo = row - 3
+            self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
+        }
+//        else /* if row > visibleRange.lowerBound + (visibleRange.length / 2) */ { // in bottom half of table
+//            scrollTo = row - 3
+//            self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
+//        }
+//        else {
+//            scrollTo = max(row - 1, 0)
+//        }
+        self.scrollRowToVisible(scrollTo)
+        
+        /*
+        // a stupidly complicated way to keep offsets constistent for a given screen
+        let visibleRect = self.visibleRect
+        var visibleRange = self.rows(in: visibleRect)
+        struct Holder {
+            static var oldVisibleRect : NSRect? = nil
+            static var oldVisibleRange : NSRange? = nil
+        }
+        
+        if Holder.oldVisibleRect == nil {
+            Holder.oldVisibleRect = visibleRect
+        }
+        if Holder.oldVisibleRange == nil {
+            Holder.oldVisibleRange = visibleRange
+        }
+        
+        print("old: \(Holder.oldVisibleRect?.size.height), new: \(visibleRect.height)")
+        if (Holder.oldVisibleRect?.size.height)! == visibleRect.height {
+            visibleRange.length = Holder.oldVisibleRange!.length
+        }
+        else {
+            Holder.oldVisibleRect = visibleRect
+            Holder.oldVisibleRange = visibleRange
+        }
+        
+//        let visibleRect = self.visibleRect
+//        let visibleRange = self.rows(in: visibleRect)
+        let offset = max((visibleRange.length) / 4, 0)
+        let scrollTo : Int
+        // last row
+        if row + offset >= self.numberOfRows {
+            scrollTo = self.numberOfRows - 1
+        }
+        // one of the first rows
+        else if row < offset /* visibleRange.length / 2 */ {
+            scrollTo = row
+        }
+        // row is before first half of visible stuff
+        else if row <= visibleRange.lowerBound + offset + 2 /*visibleRange.length*/ {
+            scrollTo = max(row - offset + 2, 0)
+        }
+        // row is at or after first half of visible stuff
+        else {
+//            scrollTo = max(row - offset, 0)
+            scrollTo = row + (offset * 3) - 2
+        }
+        self.scrollRowToVisible(scrollTo)
+        */
+        
+//        self.scrollRowToVisible(row)
+    
+         */
+    }
+    
 }
