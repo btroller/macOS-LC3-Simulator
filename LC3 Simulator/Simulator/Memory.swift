@@ -8,6 +8,9 @@
 
 // TODO: on write to memory, check if messing w/ kbsr and kbdr
 // TODO: see if writing to kbsr and dsr is allowed
+// TODO: check what should happen on read from KBDR - should it 0 out?
+
+// Preference: whether to automatically load in symbol files
 
 import Foundation
 import Cocoa
@@ -20,6 +23,10 @@ class Memory {
     static let DSR : UInt16  = 0xFE04
     static let DDR : UInt16  = 0xFE06
     static let MCR : UInt16  = 0xFFFE
+    
+    static let kLogCharacterMessageName = Notification.Name.init("logCharacter")
+    static let kRequestNextConsoleCharacter = Notification.Name.init("requestNextConsoleCharacter")
+    static let kReceiveNextConsoleCharacter = Notification.Name.init("recieveNextConsoleCharacter")
     
     var mainVC : MainViewController!  //NSApp.mainWindow?.contentViewController! as! MainViewController
     
@@ -81,15 +88,16 @@ class Memory {
         
         func getEffectiveAddrLabel(instructionAddr: Int, offset: Int16) -> String {
             // remember the PC increment
+            // TODO: maybe use &+ operator instead? won't get overflow this way if that's what I'm going for
+            //   just left this comment as passing by, but this setup seems a bit weird
             let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) + 1 + offset)
             
             return entries[Int(effectiveAddress)].label ?? "#\(offset)"
         }
         
-        let entry = entries[address]
-        let val = entry.value
+        let val = entries[address].value
         
-        switch entry.value.instructionType {
+        switch val.instructionType {
         case .ADDR:
             return "ADD R\(val.SR_DR), R\(val.SR1), R\(val.SR2)"
         case .ADDI:
@@ -98,11 +106,15 @@ class Memory {
             return "AND R\(val.SR_DR), R\(val.SR1), R\(val.SR2)"
         case .ANDI:
             return "AND R\(val.SR_DR), R\(val.SR1), #\(val.sextImm5)"
-        // TODO: use labels when available
         case .BR:
             // Return NOP if branching nowhere or all 0s
-            if ((val & 0x0E00) == 0 || val == 0) {
-                return "NOP";
+            if (val & 0x0E00) == 0 || val == 0 {
+                if isascii(Int32(val)) != 0 {
+                    return "'\(val.ascii.literalRepresentation)'"
+                }
+                else {
+                    return "NOP"
+                }
             }
             
             var branchStr = "BR"
@@ -165,7 +177,6 @@ class Memory {
     // MARK: Initializer
     // NOTE: follows design of online simulator
     init() {
-        
         // Initialize rest of memory to all 0s and no breakpoints
         for _ in 0...0xFFFF {
             entries.append(Entry())
@@ -204,19 +215,20 @@ class Memory {
         // set breakpoint at end of TRAP_HALT so it stops there by default
         let trapHaltRETIndex = 0xFD7C
         entries[trapHaltRETIndex].shouldBreak = true
-    
+        
+//        NotificationCenter.default.addObserver(self, selector: #selector(recieveNextCharacterToPalceInKBDR), name: Memory.kReceiveNextConsoleCharacter, object: nil)
     }
     
     // Loads multiple programs in
-    func loadProgramsFromFiles(at urls: [URL]) {
+    func loadProgramsFromFiles(at urls: [URL], then reloadTableViewRowsInSet: (IndexSet) -> Void) {
         for url in urls {
-            loadProgramFromFile(at: url)
+            loadProgramFromFile(at: url, then: reloadTableViewRowsInSet)
         }
     }
     
     // TODO: deal with bad data gracefully, probably print error
     // Loads in a single program
-    func loadProgramFromFile(at url: URL) {
+    func loadProgramFromFile(at url: URL, then reloadTableViewRowsInSet: (IndexSet) -> Void) {
         let fileData = NSData(contentsOf: url)!
         guard fileData.length % 2 == 0 else { print("uneven length input file") ; return }
         let numUInt16sInFile = fileData.length / 2
@@ -233,13 +245,21 @@ class Memory {
         
         let orig = Int(values[0])
         print("orig = " + String(format: "%04X", orig))
+        // get rid of origin, the first 16 bits (aka first UInt16) of the file
         let programData = values[1...]
-//        var modifiedMemoryLocations : [Int] = []
+
+        var modifiedMemoryLocations  = IndexSet()
+        defer {
+            // whenever this function ends (through error, like if the symbols file can't be found, or otherwise), reload all table views
+            reloadTableViewRowsInSet(modifiedMemoryLocations)
+        }
+        
         // might be able to do this without recording all separately just by reloading range from start to (start + length)
         for (index, value) in programData.enumerated() {
             print("val[\(index)] = " + String(format: "0x%04X", value))
-            self[UInt16(orig + index)].value = value
-//            modifiedMemoryLocations.appe
+            let addressToInsertAt = UInt16(orig + index)
+            self[addressToInsertAt].value = value
+            modifiedMemoryLocations.insert(Int(addressToInsertAt))
         }
         
         // try opening corresponding symbol file
@@ -261,6 +281,8 @@ class Memory {
                 guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true && addressStr != nil else { return }
                 guard let address = UInt16(addressStr! as String, radix: 16) else { return }
                 entries[Int(address)].label = label as String?
+                // add the entries with labels attached to modifiedMemoryLocations in case a label is added for an address not in the program itself
+                modifiedMemoryLocations.insert(Int(address))
                 print("new label: \(String(describing: label)) at address: \(address)")
             }
         } catch {
@@ -275,46 +297,43 @@ class Memory {
 
 extension Memory {
     
-    // TODO: deal with potential issue : There are 0xFFFF addressable locations using UInt16, but actually 0xFFFF + 1 addresses in the machine
     subscript(index: UInt16) -> Entry {
         get {
             return entries[Int(index)]
         }
-        // NOTE: sets only the value of the memory entry
         set {
-//            // ERROR: NOT FIRING, MY ASSUMPTION IS LIKELY BAD
-//            // SHOULD PROBABLY WATCH VALUE IN entry SPECIFICALLY
-//            if (index == Memory.DDR) {
-////                mainVC.consoleVC?.log(newValue.value.ascii)
-//                self[Memory.DSR].value.setBit(at: 15, to: 0)
-//            }
             entries[Int(index)] = newValue
         }
     }
     
     func setValue(at row : UInt16, to newValue : UInt16, then : (Int) -> Void) {
-        // can do this safely because DDR will always be ready to read as I clear it once each instruction is run
+        // can do this safely because DDR will always be ready to read because I clear it after each instruction is run
         if (row == Memory.DDR) {
-            mainVC.consoleVC?.log(newValue.ascii)
-            self[Memory.DSR].value.setBit(at: 15, to: 0)
+            NotificationCenter.default.post(name: Memory.kLogCharacterMessageName, object: newValue.ascii)
+            self[Memory.DSR].value.setBit(at: 15, to: 1)
         }
         self[row].value = newValue
         then(Int(row))
     }
+    
+//    // TODO: remove reigstation to reciev notificaitonns for this function
+//    @objc func recieveNextCharacterToPalceInKBDR(_ notification : Notification) {
+//        if let char = notification.object as? Character {
+//            self[Memory.KBDR].value = char.toUInt16ASCII
+//            self[Memory.KBSR].value.setBit(at: 15, to: 1)
+//        }
+//        else {
+//            self[Memory.KBDR].value = 0
+//            self[Memory.KBSR].value.setBit(at: 15, to: 0)
+//        }
+//    }
     
     func getValue(at index : UInt16) -> UInt16 {
         let currentVal = self[index].value
         
         // update KBSR and KBDR if KBDR is read from to reflect current state
         if (index == Memory.KBDR) {
-            if let queue = mainVC.consoleVC?.queue, queue.hasNext {
-                self[index].value = queue.pop()!.toUInt16ASCII
-                self[Memory.KBSR].value.setBit(at: 15, to: 1)
-            }
-            else {
-                self[index].value = 0
-                self[Memory.KBSR].value.setBit(at: 15, to: 0)
-            }
+            self[Memory.KBSR].value.setBit(at: 15, to: 0)
         }
         
         return currentVal
@@ -499,4 +518,13 @@ extension UInt16 {
     var ascii : Character {
         return Character(UnicodeScalar(UInt8(getBits(high: 7, low: 0))))
     }
+}
+
+// TODO: write better description here
+extension Character {
+    
+    var literalRepresentation : String {
+        return self.debugDescription.trimmingCharacters(in: ["\""])
+    }
+    
 }

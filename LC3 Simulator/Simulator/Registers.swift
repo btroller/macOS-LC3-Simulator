@@ -8,13 +8,18 @@
 
 import Foundation
 
+// TODO: somehow notify MainViewController of changed PC after finished running
+
 class Registers {
     var pc : UInt16 = 0x3000
-    {
-        didSet {
-            mainVC?.pcChanged()
-        }
-    }
+//    {
+//        didSet {
+//            DispatchQueue.main.async {
+//                self.mainVC?.pcChanged()
+//            }
+//        }
+//    }
+    
 //    {
 //        // TODO: set up notifications instead of messing with view here
 //        willSet {
@@ -60,7 +65,7 @@ class Registers {
     }
     var r : [UInt16] = [UInt16].init(repeating: 0, count: 8)
     // see book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
-    var savedSSP : UInt16 = 0
+    var savedSSP : UInt16 = 0x0300
     var savedUSP : UInt16 = 0
     
     var mainVC : MainViewController?

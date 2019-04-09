@@ -148,7 +148,8 @@ class LC3OS {
         "KBDR":       0xFE02,
         "DSR":        0xFE04,
         "DDR":        0xFE06,
-        "MCR":        0xFFFE
+        "MCR":        0xFFFE,
+        "SS_START":   0x0300
     ]
     
 }

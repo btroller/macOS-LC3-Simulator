@@ -37,6 +37,16 @@ extension MainWindowController {
         }
     }
     
+    func makeAddressSearchFieldFirstResponderWithStringAndSearch(_ string: String) {
+        DispatchQueue.main.async {
+            self.addressSearchField.stringValue = string
+            self.makeAddressSearchFieldFirstResponder()
+            if let addressSearchFieldCell = self.addressSearchField.cell as? NSSearchFieldCell {
+                addressSearchFieldCell.searchButtonCell?.performClick(nil)
+            }
+        }
+    }
+    
 }
 
 //extension MainWindowController: NSSearchFieldDelegate {

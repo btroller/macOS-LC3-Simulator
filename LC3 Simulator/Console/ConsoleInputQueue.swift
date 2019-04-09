@@ -22,11 +22,6 @@ class ConsoleInputQueue<T> {
             self.elem = elem
             self.next = nil
         }
-        
-//        init(_ elem : T, next : Node<T>) {
-//            self.elem = elem
-//            self.next = next
-//        }
     }
     
     func push(_ elem: T) {
@@ -46,7 +41,6 @@ class ConsoleInputQueue<T> {
     }
     
     func pop() -> T? {
-        // TODO: update tail
         let nextElement = head?.elem
         if (tail === head) {
             tail = nil

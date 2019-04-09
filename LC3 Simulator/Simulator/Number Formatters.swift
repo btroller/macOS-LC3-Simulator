@@ -68,8 +68,8 @@ class BinaryNumberFormatter: Formatter {
 //    }
     
     override func editingString(for obj: Any) -> String? {
-        print("in editingString")
-        print(obj)
+//        print("in editingString")
+//        print(obj)
         
         // TODO: remove
         if obj is String {
@@ -162,8 +162,8 @@ class HexNumberFormatter: Formatter {
 //    }
     
     override func string(for obj: Any?) -> String? {
-        print("in string")
-        print(obj as Any)
+//        print("in string")
+//        print(obj as Any)
         
         // TODO: remove
         if (obj as? String) != nil {
@@ -181,8 +181,8 @@ class HexNumberFormatter: Formatter {
     // gives string without starting `x`
     // TODO: preserve editing position if possible
     override func editingString(for obj: Any) -> String? {
-        print("in editingString")
-        print(obj)
+//        print("in editingString")
+//        print(obj)
         
         // TODO: remove
         if obj is String {
@@ -198,7 +198,7 @@ class HexNumberFormatter: Formatter {
     }
     
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
-        print("in getObjectValue, string = \(string)")
+//        print("in getObjectValue, string = \(string)")
         
         let scanner = Scanner(string: string)
         var result : UInt32 = 0
@@ -327,7 +327,7 @@ class SearchBarHexNumberFormatter : Formatter {
         
 //        return true
         
-        print("in getObjectValue, string = \(string)")
+//        print("in getObjectValue, string = \(string)")
 
         let scanner = Scanner(string: string)
         var result : UInt32 = 0

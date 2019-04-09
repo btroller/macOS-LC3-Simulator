@@ -6,25 +6,67 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-// TODO: decide what PC indicator is - try changing color of row to green, also allow selecting of lines separately
-//   also figure out what to do if selected row is also PC - probably mix colors somehow
 // TODO: decide register UI
-// TODO: only enable buttons when they make sense
-// TODO: add "Jump to PC" menu option
-// TODO: make search for address show result as selected and in middle of page if possible
-// TODO: disable editing of registers/memory (but still allow setting breakpoints) while running continuously
-// TODO: add "Set PC" option in context menu and menu bar (probably once selection of rows is available)
+// TODO: disable editing of registers while running continuously
+// TODO: add "Reset" option to Simulator menu to reload all files loaded previously (and assemble all assembly files)
+// TODO: automatic assembling and loading
+// TODO: add list of previously-searched-for addresses
+// TODO: add count of how many characters are buffered and button to clear buffered characters in Console window
+// TODO: come up with something cleaner than `rowBeingEdited`
+// TODO: use notifications and callbacks to talk between model and controller classes (as opposed to keeping references to controller classes around)
+// TODO: have fancier instruction string descriptions? maybe include ascii representation or numerical representation of what's there, too (possibly in separate columns)
+// TODO: try sticking NSTableView stuff in extension
+// TODO: find nicer PC indicator color
+// TODO: remove watching for and handlers for unused Notifications
+// TODO: use a uniformly monospaced font
 
+// MAYBE: maybe have different formatting in search bar to indicate it's a hex search
+// MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
+// MABYE: allow scaling of simulator horizontally, scaling only the label column (or allowing to change size of label/instruciton columns to accomidate longer instructions or labels)
+// MAYBE: add "Set PC" option in context menu - I'm starting to think this is less useful as time goes on
 
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
+// EVENTUALLY : move logic that should be run on simulator reinitialization to separate function from viewDidLoad() so I can call it separately and also from viewDidLoad()
+
+// ASK: how does he like position of searched-for address?
+// ASK: should I use his OS?
 
 import Foundation
 import Cocoa
 
 class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
-
+    
     var rowBeingEdited : Int?
-    var shouldStopExecuting : Bool = false
+    private var shouldStopExecuting : Bool = false
+    private var simulatorIsRunning : Bool = false
+    
+    // MARK: Constants
+    let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
+    let kStatusAvailableImage = NSImage(imageLiteralResourceName: NSImage.statusAvailableName)
+    let kStatusUnavailableIMage = NSImage(imageLiteralResourceName: NSImage.statusUnavailableName)
+    
+    let kPCIndicatorColor : NSColor = NSColor(named: NSColor.Name("PCIndicatorColor"))!
+    
+    let kValueBinaryColumnIdentifier : NSUserInterfaceItemIdentifier = "valueBinaryColumnID"
+    let kValueBinaryCellIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryCellID"
+    let kValueBinaryTextFieldIdentifier : NSUserInterfaceItemIdentifier = "valueBinaryTextFieldID"
+    let kValueHexColumnIdentifier : NSUserInterfaceItemIdentifier = "valueHexColumnID"
+    let kValueHexCellIdentifier : NSUserInterfaceItemIdentifier = "valueHexCellID"
+    let kValueHexTextFieldIdentifier : NSUserInterfaceItemIdentifier = "valueHexTextFieldID"
+    let kStatusColumnIdentifier : NSUserInterfaceItemIdentifier = "statusColumnID"
+    let kStatusCellIdentifier : NSUserInterfaceItemIdentifier = "statusCellID"
+    let kAddressColumnIdentifier : NSUserInterfaceItemIdentifier = "addressColumnID"
+    let kAddressCellIdentifier : NSUserInterfaceItemIdentifier = "addressCellID"
+    let kLabelColumnIdentifier : NSUserInterfaceItemIdentifier = "labelColumnID"
+    let kLabelCellIdentifier : NSUserInterfaceItemIdentifier = "labelCellID"
+    let kInstructionColumnIdentifier : NSUserInterfaceItemIdentifier = "instructionColumnID"
+    let kInstructionCellIdentifier : NSUserInterfaceItemIdentifier = "instructionCellID"
+    
+    // MARK: Variables
+    typealias Instruction = UInt16
+    var simulator = Simulator()
+    var memory : Memory!
+    var consoleVC : ConsoleViewController?
     
     let backgroundQueue = DispatchQueue.global(qos: .userInteractive)
     
@@ -32,29 +74,21 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
     @IBOutlet weak var memoryTableView: NSTableView!
     @IBOutlet weak var registersTableView: NSTableView!
     
-    var allColumnIndices : IndexSet {
-        var allColumns : IndexSet = []
-        for (index, _) in self.memoryTableView.tableColumns.enumerated() {
-            allColumns.insert(index)
-        }
-        return allColumns
+    func updateUIAfterSimulatorRun(modifiedRows: IndexSet) {
+        simulatorIsRunning = false
+        memoryTableView.reloadModifedRows(modifiedRows)
+        pcChanged()
     }
     
-    func refreshTableView(modifiedRow: Int) {
-        DispatchQueue.main.async {
-            // DOWNSIDE always grab correct number of columns, but might present a plenty of overhead
-            let modifiedRowSet : IndexSet = [modifiedRow]
-            self.memoryTableView.reloadData(forRowIndexes: modifiedRowSet, columnIndexes: self.allColumnIndices)
-        }
-    }
-    
+    // TODO: change to computed property
     func shouldStopProgramExecution() -> Bool {
         return shouldStopExecuting
     }
     
     func pcChanged() {
         DispatchQueue.main.async {
-            self.memoryTableView.selectRowIndexes([Int(self.simulator.registers.pc)], byExtendingSelection: false)
+            // if row of PC is visible, change its color to indicate that the PC is set to it
+            self.memoryTableView.rowView(atRow: Int(self.simulator.registers.pc), makeIfNecessary: false)?.backgroundColor = self.kPCIndicatorColor
         }
     }
     
@@ -62,88 +96,157 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
     @IBAction func runClickedWithSender(_ sender: AnyObject) {
         print("run clicked")
         shouldStopExecuting = false
+        simulatorIsRunning = true
+        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+//        memoryTableView.abortEditing()
         backgroundQueue.async {
-            self.simulator.runForever(then: self.refreshTableView, shouldStopExecuting: self.shouldStopProgramExecution)
+            self.simulator.runForever(then: self.updateUIAfterSimulatorRun, shouldStopExecuting: self.shouldStopProgramExecution)
         }
-        
-//        memoryTableView.reloadData()
+        NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
     
-    // TODO: insert step button? ACTUALY NO, USE STEP INTO
     @IBAction func stepInClickedWithSender(_ sender: AnyObject) {
         print("step clicked")
         shouldStopExecuting = false
-        simulator.executeNextInstruction(afterMemoryModification: refreshTableView)
-//        memoryTableView.reloadData()
+        simulatorIsRunning = true
+        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+//        memoryTableView.abortEditing()
+        simulator.stepIn(then: self.updateUIAfterSimulatorRun)
+        NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
     
     @IBAction func stepOutClickedWithSender(_ sender : AnyObject) {
         print("step out clicked")
-        assertionFailure("not implemented yet")
+        preconditionFailure("not implemented yet")
     }
     
-    // TODO: stop running execution with
+    @IBAction func stepOverClickedWithSender(_ sender : AnyObject) {
+        print("step over clicked")
+        preconditionFailure("not implemented yet")
+    }
+    
+    // TODO: stop running execution with (STOPPED THINKING HERE)
+    // TODO: try sticking shouldStopExecuting in Simulator class
     @IBAction func stopClickedWithSender(_ sender: AnyObject) {
         shouldStopExecuting = true
+        NSApp.mainWindow?.toolbar?.validateVisibleItems()
+
     }
     
+    // when requested to jump to the PC, insert the PC as a string into the search bar and search for it
     @IBAction func scrollToPCClickedWithSender(_ sender: AnyObject) {
         DispatchQueue.main.async {
-            let pcRow = Int(self.simulator.registers.pc)
-//            self.memoryTableView.scrollRowToVisible(pcRow)
-            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(pcRow)
+            if let windowController = NSApp.mainWindow?.windowController as? MainWindowController {
+                let pcRow = self.simulator.registers.pc
+                let str = String(format: "%X", pcRow)
+                
+                windowController.makeAddressSearchFieldFirstResponderWithStringAndSearch(str)
+            }
         }
     }
     
-    // MARK: Constants
-    let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
-    let kStatusAvailableImage = NSImage(imageLiteralResourceName: NSImage.statusAvailableName)
-    let kStatusUnavailableIMage = NSImage(imageLiteralResourceName: NSImage.statusUnavailableName)
+    // reset machine state
+    @IBAction func resetSimulatorPressedWithSender(_ sender: AnyObject) {
+        DispatchQueue.main.async {
+            self.simulator = Simulator()
+            self.consoleVC?.resetConsole()
+            self.viewDidLoad()
+        }
+    }
     
-    // MARK: Variables
-    typealias Instruction = UInt16
-    let simulator = Simulator()
-    var memory : Memory!
-    var consoleVC : ConsoleViewController?
+    @IBAction func setPCPressedWithSender(_ sender: AnyObject) {
+        assert(!simulatorIsRunning && memoryTableView.selectedRowIndexes.count == 1)
+        
+        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+        let selectedRow = memoryTableView.selectedRowIndexes.first!
+        simulator.registers.pc = UInt16(selectedRow)
+        pcChanged()
+    }
     
     func setConsoleVC(to vc : ConsoleViewController) {
         self.consoleVC = vc
     }
-    
-    @objc func onItemClicked() {
+
+    // TODO: rename to something better
+    // NOTE: relies on static ordering of columns
+    // TODO: abstact away from specific column like done in other cases (onItemDoubleClicked) - replace 0
+    @IBAction func onItemClicked(_ sender: AnyObject) {
         print("row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn) clicked")
-        if memoryTableView.clickedColumn == 0 && memoryTableView.clickedRow >= 0 {
+        let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
+        
+        if memoryTableView.clickedColumn == breakpointColumnIndex && memoryTableView.clickedRow >= 0 {
             memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
+            // only need to reload the view containing the breakpoint icon
             memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
         }
     }
-//    var window : NSWindow!
     
+    // TODO: rename to something better
     // NOTE: might also trigger for registers table view for now
-    @objc func onItemDoubleClicked() {
-        guard memoryTableView.clickedRow > 0 else { return }
+    // NOTE: relies on static ordering of columns
+    @IBAction func onItemDoubleClicked(_ sender: AnyObject) {
+        guard memoryTableView.clickedRow >= 0 else { return }
         print("double clicked on row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn)")
+        let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
+        let binaryValueColumnIndex = memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
+        let hexValueColumnIndex = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
+
         switch memoryTableView.clickedColumn {
-        case 0:
-            // just run the same logic for toggling a breakpoint
-            onItemClicked()
-        case 1:
-            // address column
-            // do nothing
-            break
-        case 2:
+        case breakpointColumnIndex:
+            // just run the same logic for toggling a breakpoint as if it were clicked once
+            onItemClicked(self)
+        case binaryValueColumnIndex:
             // value (binary) column
-            rowBeingEdited = memoryTableView.clickedRow
-            memoryTableView.editColumn(2, row: memoryTableView.clickedRow, with: nil, select: false)
-            break
-        case 3:
+            guard !simulatorIsRunning else { return }
+            
+            let rowToEdit = self.memoryTableView.clickedRow
+            let columnToEdit = self.memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
+            
+            rowBeingEdited = rowToEdit
+            
+            (self.memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
+            self.memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
+        case hexValueColumnIndex:
             // value (hex) column
-            rowBeingEdited = memoryTableView.clickedRow
-            memoryTableView.editColumn(3, row: memoryTableView.clickedRow, with: nil, select: false)
+            guard !simulatorIsRunning else { return }
+            
+            let rowToEdit = self.memoryTableView.clickedRow
+            let columnToEdit = self.memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
+            
+            rowBeingEdited = rowToEdit
+            
+            (self.memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
+            self.memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
         default:
-            print("default")
+            break
         }
+    }
+    
+    // TODO: hook up to menu item and toolbar button, then make sure those are only enabled if it makes sense (same logic as used for setting pc to selected row)
+    @IBAction func toggleBreakpointClickedWithSender(_ sender: AnyObject) {
+        assert(memoryTableView.selectedRowIndexes.count == 1)
+        // MAYBE perform check for valid row here
         
+        guard let selectedRowIndex = memoryTableView.selectedRowIndexes.first else { return }
+        
+        memory[UInt16(selectedRowIndex)].shouldBreak.toggle()
+        memoryTableView.reloadData(forRowIndexes: [selectedRowIndex], columnIndexes: [memoryTableView.column(withIdentifier: kStatusColumnIdentifier)])
+        
+        
+//        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+//        let selectedRow = memoryTableView.selectedRowIndexes.first!
+//        simulator.registers.pc = UInt16(selectedRow)
+//        pcChanged()
+        
+//        if memoryTableView.clickedColumn == 0 && memoryTableView.clickedRow >= 0 {
+//            memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
+//            memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
+//        }
+        
+    }
+
+    func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
+        return !simulatorIsRunning
     }
     
     override func viewDidLoad() {
@@ -154,34 +257,22 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         performSegue(withIdentifier: "showConsoleWindow", sender: self)
         
         memory = simulator.memory
-        print("viewloaded")
         simulator.setMainVC(to: self)
-//        memoryTableView.rowView(atRow: 0x3000, makeIfNecessary: false)?.backgroundColor = .red
-//        memoryTableView.highlightSelection(inClipRect: memoryTableView.rect(ofRow: 0x3000))
-//        memoryTableView.reloadData()
-//        window = NSWindow(contentViewController: ConsoleViewController())
-//        window.windowController?.showWindow(self)
-        memoryTableView.action = #selector(onItemClicked)
-        memoryTableView.doubleAction = #selector(onItemDoubleClicked)
         
-        // TODO: change to be dynamic
-        // scroll to place PC in middle of memory table view
-//        memoryTableView.scrollRowToVisible(0x3020)
+        // show memory table view appropriately
         DispatchQueue.main.async {
+            self.memoryTableView.reloadData()
             self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
         }
         // show PC appropriately
         pcChanged()
-//        memoryTableView.selectRowIndexes([Int(simulator.registers.pc)], byExtendingSelection: false)
-//        memoryTableView.
+        
+        // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
+//        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
+//        NSApp.mainWindow?.makeKeyAndOrderFront(self)
     }
-
-//    override var representedObject: Any? {
-//        didSet {
-//        // Update the view, if already loaded.
-//        }
-//    }
     
+    // MARK: NSTableView stuff
     func numberOfRows(in tableView: NSTableView) -> Int {
         if tableView === memoryTableView {
             return 0x10000
@@ -191,63 +282,58 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         }
     }
     
-    // TODO: set font only once, hopefully in Interface Builder
-    // TODO: refactor so I don't have to do a bunch of junk like "NSUserInter..." each time I run it
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        
-        switch tableColumn?.identifier.rawValue {
-        case "statusColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "statusCellID"), owner: self) as! NSTableCellView
-            
+        switch tableColumn?.identifier {
+        case kStatusColumnIdentifier:
             switch memory[UInt16(row)].shouldBreak {
-                case true:
-                cellView.imageView?.image = kStatusUnavailableIMage
-                case false:
-                cellView.imageView?.image = kStatusNoneImage
+            case true:
+                return tableView.createNSTableCellViewWithStringIdentifier(kStatusCellIdentifier, imageValue: kStatusUnavailableIMage)
+            case false:
+                return tableView.createNSTableCellViewWithStringIdentifier(kStatusCellIdentifier, imageValue: kStatusNoneImage)
             }
-            return cellView
-        case "addressColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "addressCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = String(format: "x%04X", row)
-            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            return cellView
-        case "valueBinaryColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueBinaryCellID"), owner: self) as! NSTableCellView
+        case kAddressColumnIdentifier:
+            return tableView.createNSTableCellViewWithStringIdentifier(kAddressCellIdentifier, stringValue: String(format: "x%04X", row))
+        case kValueBinaryColumnIdentifier:
+            // attempt to avoid unneccessary computation and speed up table view loading process, pt. 1
+            if memory[UInt16(row)].value == 0 {
+                return tableView.createNSTableCellViewWithStringIdentifier(kValueBinaryCellIdentifier, stringValue: "0000 0000 0000 0000")
+            }
+            
             let unformattedBinaryString = String(memory[UInt16(row)].value, radix: 2)
             var formattedBinaryString = String(repeating: "0", count: 16 - unformattedBinaryString.count) + unformattedBinaryString
             formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 12, in: formattedBinaryString))
             formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 8, in: formattedBinaryString))
             formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 4, in: formattedBinaryString))
-            cellView.textField?.stringValue = formattedBinaryString
-            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            return cellView
-        case "valueHexColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "valueHexCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = String(format: "%04X", memory[UInt16(row)].value)
-            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            return cellView
-        case "labelColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "labelCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = memory.getEntryLabel(of: row)
-            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            return cellView
-        case "instructionColumnID":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "instructionCellID"), owner: self) as! NSTableCellView
-            cellView.textField?.stringValue = memory.instructionString(at: row)
-            cellView.textField?.font = NSFont.monospacedDigitSystemFont(ofSize: (cellView.textField?.font?.pointSize)!, weight: NSFont.Weight.regular)
-            return cellView
+            
+            return tableView.createNSTableCellViewWithStringIdentifier(kValueBinaryCellIdentifier, stringValue: formattedBinaryString)
+        case kValueHexColumnIdentifier:
+            // attempt to avoid unneccessary computation and speed up table view loading process, pt. 2
+            if memory[UInt16(row)].value == 0 {
+                return tableView.createNSTableCellViewWithStringIdentifier(kValueHexCellIdentifier, stringValue: "0000")
+            }
+            
+            return tableView.createNSTableCellViewWithStringIdentifier(kValueHexCellIdentifier, stringValue: String(format: "%04X", memory[UInt16(row)].value))
+        case kLabelColumnIdentifier:
+            return tableView.createNSTableCellViewWithStringIdentifier(kLabelCellIdentifier, stringValue: memory.getEntryLabel(of: row))
+        case kInstructionColumnIdentifier:
+            // attempt to avoid unneccessary computation and speed up table view loading process, pt. 3
+            if memory[UInt16(row)].value == 0 {
+                return tableView.createNSTableCellViewWithStringIdentifier(kInstructionCellIdentifier, stringValue: "NOP")
+            }
+            
+            return tableView.createNSTableCellViewWithStringIdentifier(kInstructionCellIdentifier, stringValue: memory.instructionString(at: row))
             
         // MARK: cases having to do with second table
         case "registerNameCol1":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "registerNameCol1"), owner: self) as! NSTableCellView
+            let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
             cellView.textField?.stringValue = "R\(row)"
             return cellView
         case "registerNameCol2":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "registerNameCol1"), owner: self) as! NSTableCellView
+            let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
             cellView.textField?.stringValue = "R\(row + 3)"
             return cellView
         case "registerNameCol3":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "registerNameCol1"), owner: self) as! NSTableCellView
+            let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
             if (row == 2) {
                 cellView.textField?.stringValue = "CC"
             }
@@ -256,7 +342,7 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
             }
             return cellView
         case "registerNameCol4":
-            let cellView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "registerNameCol1"), owner: self) as! NSTableCellView
+            let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
             switch row {
             case 0:
                 cellView.textField?.stringValue = "PC"
@@ -277,13 +363,12 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         }
     }
 
-    // disable selection of all rows
-    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-        return false
-    }
+//    // disable selection of all rows
+//    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+//        return false
+//    }
     
     func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        
         switch tableColumn?.identifier.rawValue {
         case "valueHexColumnID":
             return memory[UInt16(row)].value
@@ -292,8 +377,31 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         default:
             return nil
         }
-        
     }
+
+    // color newly-appearing rows green iff the simulator isn't running instructions and the row is of the PC
+    func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
+        if !simulatorIsRunning && row == simulator.registers.pc {
+            rowView.backgroundColor = kPCIndicatorColor
+        }
+    }
+    
+//    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+////        tableview
+//        if let rowView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "memoryTableRowViewIdentifier"), owner: self) as? NSTableRowView {
+////            rowView.wantsLayer = true
+////            rowView.layer?.backgroundColor = CGColor(red: 0, green: 255, blue: 255, alpha: 0.5);
+//
+//            rowView.backgroundColor = .green
+// //            rowView.drawBackground(in: rowView.visibleRect)
+//            return rowView
+//        }
+//
+//        // required b/c registers table view is still around
+//        return nil
+////        assertionFailure()
+//
+//    }
 
 }
 
@@ -311,34 +419,40 @@ extension MainViewController : NSOpenSavePanelDelegate {
             switch (response) {
             case .OK:
                 print("selected the files \(panel.urls)")
-                self.memory.loadProgramsFromFiles(at: panel.urls)
-                // less efficient (I think) than only loading modified rows
-                // EVENTUALLY: create set of modified rows to pass into other type of reloadData()
-                self.memoryTableView.reloadData()
+                
+//                func reloadRowsInIndexSetInsideMemoryTableView(_ indexSet: IndexSet) {
+//                    DispatchQueue.main.async {
+//                        self.memoryTableView.reloadData(forRowIndexes: indexSet, columnIndexes: self.memoryTableView.allColumnIndexes)
+//                    }
+//                }
+                
+                self.memory.loadProgramsFromFiles(at: panel.urls, then: self.memoryTableView.reloadModifedRows)
             default:
                 print("didn't select something")
             }
         }
     }
     
-    // TODO: eventually allow .asm files and do the whole automatic assembling and loading thing
+    // EVENTUALLY: allow .asm files and do the whole automatic assembling and loading thing
     func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
         return url.pathExtension == "obj" || url.hasDirectoryPath
     }
     
 }
 
+// TODO: put scanning functions inside of control()
 extension MainViewController : NSTextFieldDelegate {
     
     func scanBinaryStringToUInt16(_ string : String) -> UInt16? {
         let formatter = BinaryNumberFormatter()
         var obj : AnyObject = 0 as AnyObject
         let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        if !formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+        if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+            return obj as? UInt16
+        }
+        else {
             return nil
         }
-        
-        return obj as? UInt16
     }
     
     func scanHexStringToUInt16(_ string : String) -> UInt16? {
@@ -356,26 +470,35 @@ extension MainViewController : NSTextFieldDelegate {
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
-        // put new value into memory
-        // reload table view
+        
+        // always make the text field non-editable again after finished editing
+        defer {
+            (control as? NSTextField)?.isEditable = false
+        }
+        
+        // don't allow edit to go through if simulator is running
+        guard !simulatorIsRunning else {
+            control.abortEditing()
+            return true
+        }
+        
+        // put new value into memory, then reload table view
         DispatchQueue.main.async {
-            switch control.identifier?.rawValue {
-            case "hexValueCellID":
+            switch control.identifier {
+            case self.kValueHexTextFieldIdentifier:
                 if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
                     self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
                 }
-            case "binaryValueCellID":
+            case self.kValueBinaryTextFieldIdentifier:
                 if let parsedString = self.scanBinaryStringToUInt16(fieldEditor.string) {
                     self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
                 }
             default:
-                assertionFailure("Failed to match identifier of control in control()")
+                preconditionFailure("Failed to match identifier of control in control()")
             }
 
-            self.memoryTableView.reloadData(forRowIndexes: [self.rowBeingEdited!], columnIndexes: self.allColumnIndices)
+            self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
         }
-        
-        print("in control function, new string value \(fieldEditor.string)")
         
         return true
     }
@@ -384,7 +507,6 @@ extension MainViewController : NSTextFieldDelegate {
 // MARK: search bar stuff
 extension MainViewController {
     
-    // TODO: implement better version
     @IBAction func searchingFinished(_ sender: NSSearchField) {
         if let scannedValue = scanHexStringToUInt16(sender.stringValue) {
             DispatchQueue.main.async {
@@ -393,6 +515,7 @@ extension MainViewController {
         }
     }
     
+    // makes ⌘F shortcut or click of menu item trigger search bar
     @IBAction func findMenuItemClickedWithSender(_ sender: Any) {
         if let mainWindowController = NSApp.mainWindow?.windowController as? MainWindowController {
             mainWindowController.makeAddressSearchFieldFirstResponder()
@@ -401,94 +524,174 @@ extension MainViewController {
     
 }
 
+// MARK: utility method extensions to NSTableView
 extension NSTableView {
     
-    // TODO: implement correctly
+    // utility method used to scroll to a row with spacing around it
     // NOTE: relies on caller executing this on main thread
     func scrollToMakeRowVisibleWithSpacing(_ row: Int) {
-        let visibleRect = self.visibleRect
-        let visibleRange = self.rows(in: visibleRect)
-        
-        self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
-        self.scrollRowToVisible(max(row - 3, 0))
-        
-        /*
-        let scrollTo : Int
-         
-        if row >= self.numberOfRows {
-            scrollTo = self.numberOfRows - 1
-        }
-        else if row <= 1 {
-            scrollTo = row
-        }
-        else if row < visibleRange.lowerBound {
-            scrollTo = max(row - 3, 0)
-        }
-        else /* if row > visibleRange.upperBound */ {
-            scrollTo = row - 3
-            self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
-        }
-//        else /* if row > visibleRange.lowerBound + (visibleRange.length / 2) */ { // in bottom half of table
-//            scrollTo = row - 3
-//            self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
-//        }
-//        else {
-//            scrollTo = max(row - 1, 0)
-//        }
-        self.scrollRowToVisible(scrollTo)
-        
-        /*
-        // a stupidly complicated way to keep offsets constistent for a given screen
-        let visibleRect = self.visibleRect
-        var visibleRange = self.rows(in: visibleRect)
-        struct Holder {
-            static var oldVisibleRect : NSRect? = nil
-            static var oldVisibleRange : NSRange? = nil
-        }
-        
-        if Holder.oldVisibleRect == nil {
-            Holder.oldVisibleRect = visibleRect
-        }
-        if Holder.oldVisibleRange == nil {
-            Holder.oldVisibleRange = visibleRange
-        }
-        
-        print("old: \(Holder.oldVisibleRect?.size.height), new: \(visibleRect.height)")
-        if (Holder.oldVisibleRect?.size.height)! == visibleRect.height {
-            visibleRange.length = Holder.oldVisibleRange!.length
-        }
-        else {
-            Holder.oldVisibleRect = visibleRect
-            Holder.oldVisibleRange = visibleRange
-        }
-        
 //        let visibleRect = self.visibleRect
 //        let visibleRange = self.rows(in: visibleRect)
-        let offset = max((visibleRange.length) / 4, 0)
-        let scrollTo : Int
-        // last row
-        if row + offset >= self.numberOfRows {
-            scrollTo = self.numberOfRows - 1
-        }
-        // one of the first rows
-        else if row < offset /* visibleRange.length / 2 */ {
-            scrollTo = row
-        }
-        // row is before first half of visible stuff
-        else if row <= visibleRange.lowerBound + offset + 2 /*visibleRange.length*/ {
-            scrollTo = max(row - offset + 2, 0)
-        }
-        // row is at or after first half of visible stuff
-        else {
-//            scrollTo = max(row - offset, 0)
-            scrollTo = row + (offset * 3) - 2
-        }
-        self.scrollRowToVisible(scrollTo)
-        */
         
-//        self.scrollRowToVisible(row)
+        // two scrolls are used to make spacing easier - otherwise there's some annoyingly complex logic here
+//        self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
+        self.scrollRowToVisible(self.numberOfRows - 1)
+        self.scrollRowToVisible(max(row /* - 3 */, 0))
+    }
     
-         */
+    // gets all column indexes in a NSTableView
+    var allColumnIndexes : IndexSet {
+        return IndexSet(integersIn: self.tableColumns.indices)
+    }
+    
+    // NOTE: createNSTableCellViewWithStringIdentifier() is implemented as 2 separate functions for (hopeful) speed's sake, but could (and was previously) implemented as a single function with nil as default value for stringValue and imageValue
+    
+    func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, stringValue: String) -> NSTableCellView {
+        let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
+
+        cellView.textField?.stringValue = stringValue
+        if let fontSize = cellView.textField?.font?.pointSize, let font = NSFont.userFixedPitchFont(ofSize: fontSize) {
+            cellView.textField?.font = font
+        }
+
+        return cellView
+    }
+
+    func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, imageValue: NSImage) -> NSTableCellView {
+        let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
+
+        cellView.imageView?.image = imageValue
+
+        return cellView
+    }
+    
+    // reset color of specific row in table view to original color
+    func resetRowColorOf(row: Int) {
+        if let originalColor = self.rowView(atRow: row - 2, makeIfNecessary: false)?.backgroundColor {
+            self.rowView(atRow: row, makeIfNecessary: false)?.backgroundColor = originalColor
+        }
+        else if let originalColor = self.rowView(atRow: row + 2, makeIfNecessary: false)?.backgroundColor {
+            self.rowView(atRow: row, makeIfNecessary: false)?.backgroundColor = originalColor
+        }
+    }
+    
+    func reloadModifedRows(_ modifiedRows: IndexSet) {
+        DispatchQueue.main.async {
+            self.reloadData(forRowIndexes: modifiedRows, columnIndexes: self.allColumnIndexes)
+        }
+    }
+
+}
+
+// allows me to pass strings as arguments which expect NSUserInterfaceItemIdentifiers, avoiding bloat from explicit calls to the NSUserInterfaceItemIdentifier constructor
+extension NSUserInterfaceItemIdentifier : ExpressibleByStringLiteral {
+    
+    public typealias StringLiteralType = String
+    
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(rawValue: value)
     }
     
 }
+
+
+extension MainViewController : NSMenuItemValidation, NSToolbarItemValidation {
+    
+    var shouldEnableSetPCToSelectedRow : Bool {
+        return !simulatorIsRunning && memoryTableView.selectedRowIndexes.count == 1
+    }
+    
+    var shouldEnableToggleBreakpoint : Bool {
+        return memoryTableView.selectedRowIndexes.count == 1
+    }
+    
+    var shouldEnableControlWhichStartsSimulator : Bool {
+        return !simulatorIsRunning
+    }
+    
+    var shouldEnableStopSimulator : Bool {
+        return simulatorIsRunning
+    }
+    
+    // validation of menu items
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        switch menuItem.identifier {
+        case "setPCToSelectedRowMenuItemID":
+            return shouldEnableSetPCToSelectedRow
+        case "toggleBreakpointMenuItemID":
+            return shouldEnableToggleBreakpoint
+        case "runMenuItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stopMenuItemID":
+            return shouldEnableStopSimulator
+        case "stepInMenuItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stepOutMenuItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stepOverMenuItemID":
+            return shouldEnableControlWhichStartsSimulator
+        default:
+            return true
+        }
+    }
+    
+    // validation of toolbar items
+    @objc func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+        switch item.itemIdentifier.rawValue {
+        case "toggleBreakpointToolbarItemID":
+            return shouldEnableToggleBreakpoint
+        case "runToolbarItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stepOutToolbarItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stepInToolbarItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stepOverToolbarItemID":
+            return shouldEnableControlWhichStartsSimulator
+        case "stopToolbarItemID":
+            return shouldEnableStopSimulator
+        default:
+            return true
+        }
+    }
+    
+}
+
+// trick non-image NSToolbarItems into calling validate() anyway, enabling or disabling them as desired
+// NOTE: must use this subclass of NSToolbarItem for it to work. I tried extending NSToolbarItem, but it fought me
+class MyNSToolbarItem : NSToolbarItem {
+
+    override func validate() {
+        if let control = self.view as? NSControl, let action = self.action, let validator = NSApp.target(forAction: action, to: self.target, from: self) {
+            // safe to do because I checked for nil using if let
+            control.isEnabled = (validator as AnyObject).validateToolbarItem(self)
+        }
+        else {
+            super.validate()
+        }
+    }
+
+}
+
+//extension NSToolbarItem {
+//
+//    override func validate() {
+//        preconditionFailure()
+//    }
+//
+//}
+
+// TODO: remove
+//extension NSTableView {
+//
+//    open override func keyDown(with event: NSEvent) {
+//        print(event)
+//        super.keyDown(with: event)
+//    }
+//    
+//    open override func keyUp(with event: NSEvent) {
+//        print(event)
+//        super.keyUp(with: event)
+//    }
+//
+//}
