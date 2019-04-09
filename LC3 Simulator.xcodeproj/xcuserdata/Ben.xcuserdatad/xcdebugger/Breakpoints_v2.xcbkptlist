@@ -153,22 +153,6 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8805881"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "236"
-            endingLineNumber = "236"
-            landmarkName = "toggleBreakpointClickedWithSender(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/Memory.swift"
             timestampString = "573018972.418334"
             startingColumnNumber = "9223372036854775807"
@@ -266,11 +250,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.88191"
+            timestampString = "576528588.40587"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "472"
-            endingLineNumber = "472"
+            startingLineNumber = "474"
+            endingLineNumber = "474"
             landmarkName = "control(_:textShouldEndEditing:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -394,11 +378,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.882332"
+            timestampString = "576528588.406454"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "443"
-            endingLineNumber = "443"
+            startingLineNumber = "445"
+            endingLineNumber = "445"
             landmarkName = "unknown"
             landmarkType = "0">
          </BreakpointContent>
@@ -433,22 +417,6 @@
             startingLineNumber = "109"
             endingLineNumber = "109"
             landmarkName = "isPartialStringValid(_:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.882652"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "248"
-            endingLineNumber = "248"
-            landmarkName = "control(_:textShouldBeginEditing:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -539,210 +507,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8830251"
+            timestampString = "576528588.406886"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "266"
-            endingLineNumber = "266"
-            landmarkName = "viewDidLoad()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.486742"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "384">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.48869"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "524">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.490468"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "1458">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.492324"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "1964">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.494185"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "4332">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.4962209"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "5850">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.497875"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "6437">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.499535"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "7670">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.501236"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "8940">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.50293"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "10250">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.tableView(_: __C.NSTableView, viewFor: Swift.Optional&lt;__C.NSTableColumn&gt;, row: Swift.Int) -&gt; Swift.Optional&lt;__C.NSView&gt;"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575510936.5048341"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "204"
-                  endingLineNumber = "204"
-                  offsetFromSymbolStart = "11887">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8833179"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "267"
-            endingLineNumber = "267"
-            landmarkName = "viewDidLoad()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.883602"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "80"
-            endingLineNumber = "80"
+            startingLineNumber = "78"
+            endingLineNumber = "78"
             landmarkName = "updateUIAfterSimulatorRun(modifiedRows:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -754,27 +523,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.883875"
+            timestampString = "576528588.407195"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "364"
-            endingLineNumber = "364"
-            landmarkName = "tableView(_:viewFor:row:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.884159"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "167"
-            endingLineNumber = "167"
+            startingLineNumber = "165"
+            endingLineNumber = "165"
             landmarkName = "setConsoleVC(to:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -802,11 +555,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.884462"
+            timestampString = "576528588.4075"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "430"
-            endingLineNumber = "430"
+            startingLineNumber = "432"
+            endingLineNumber = "432"
             landmarkName = "openDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -818,11 +571,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.884735"
+            timestampString = "576528588.407761"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "429"
-            endingLineNumber = "429"
+            startingLineNumber = "431"
+            endingLineNumber = "431"
             landmarkName = "openDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -866,11 +619,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8850369"
+            timestampString = "576528588.408047"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "622"
-            endingLineNumber = "622"
+            startingLineNumber = "624"
+            endingLineNumber = "624"
             landmarkName = "validateMenuItem(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -882,170 +635,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.885314"
+            timestampString = "576528588.408313"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "207"
-            endingLineNumber = "207"
-            landmarkName = "onItemDoubleClicked(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8855979"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "208"
-            endingLineNumber = "208"
-            landmarkName = "onItemDoubleClicked(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.885878"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "480"
-            endingLineNumber = "480"
+            startingLineNumber = "482"
+            endingLineNumber = "482"
             landmarkName = "control(_:textShouldEndEditing:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.8861541"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "178"
-            endingLineNumber = "178"
-            landmarkName = "onItemClicked(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.886435"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "197"
-            endingLineNumber = "197"
-            landmarkName = "onItemDoubleClicked(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "LC3 Simulator/MainViewController.swift"
-            timestampString = "576526767.886714"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "194"
-            endingLineNumber = "194"
-            landmarkName = "onItemDoubleClicked(_:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.onItemDoubleClicked(Swift.AnyObject) -&gt; ()"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575758106.181196"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "188"
-                  endingLineNumber = "188"
-                  offsetFromSymbolStart = "1315">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.onItemDoubleClicked(Swift.AnyObject) -&gt; ()"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575758106.1831419"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "188"
-                  endingLineNumber = "188"
-                  offsetFromSymbolStart = "1525">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.onItemDoubleClicked(Swift.AnyObject) -&gt; ()"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575758106.18558"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "188"
-                  endingLineNumber = "188"
-                  offsetFromSymbolStart = "1617">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.onItemDoubleClicked(Swift.AnyObject) -&gt; ()"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575758106.187788"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "188"
-                  endingLineNumber = "188"
-                  offsetFromSymbolStart = "1641">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "LC3_Simulator.MainViewController.onItemDoubleClicked(Swift.AnyObject) -&gt; ()"
-                  moduleName = "LC3 Simulator"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Ben/Documents/Senior%20Project/LC3%20Simulator/LC3%20Simulator/MainViewController.swift"
-                  timestampString = "575758106.189672"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "188"
-                  endingLineNumber = "188"
-                  offsetFromSymbolStart = "3455">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

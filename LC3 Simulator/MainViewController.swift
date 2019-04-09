@@ -7,7 +7,7 @@
 //
 
 // TODO: decide register UI
-// TODO: disable editing of registers while running continuously
+// TODO:   disable editing of registers while running continuously
 // TODO: add "Reset" option to Simulator menu to reload all files loaded previously (and assemble all assembly files)
 // TODO: automatic assembling and loading
 // TODO: add list of previously-searched-for addresses
@@ -15,10 +15,7 @@
 // TODO: come up with something cleaner than `rowBeingEdited`
 // TODO: use notifications and callbacks to talk between model and controller classes (as opposed to keeping references to controller classes around)
 // TODO: have fancier instruction string descriptions? maybe include ascii representation or numerical representation of what's there, too (possibly in separate columns)
-// TODO: try sticking NSTableView stuff in extension
-// TODO: find nicer PC indicator color
 // TODO: remove watching for and handlers for unused Notifications
-// TODO: use a uniformly monospaced font
 
 // MAYBE: maybe have different formatting in search bar to indicate it's a hex search
 // MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
@@ -34,7 +31,7 @@
 import Foundation
 import Cocoa
 
-class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
+class MainViewController: NSViewController {
     
     var rowBeingEdited : Int?
     private var shouldStopExecuting : Bool = false
@@ -167,6 +164,10 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         self.consoleVC = vc
     }
 
+}
+
+extension MainViewController : NSTableViewDataSource, NSTableViewDelegate {
+    
     // TODO: rename to something better
     // NOTE: relies on static ordering of columns
     // TODO: abstact away from specific column like done in other cases (onItemDoubleClicked) - replace 0
@@ -190,7 +191,7 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
         let binaryValueColumnIndex = memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
         let hexValueColumnIndex = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
-
+        
         switch memoryTableView.clickedColumn {
         case breakpointColumnIndex:
             // just run the same logic for toggling a breakpoint as if it were clicked once
@@ -233,18 +234,18 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         memoryTableView.reloadData(forRowIndexes: [selectedRowIndex], columnIndexes: [memoryTableView.column(withIdentifier: kStatusColumnIdentifier)])
         
         
-//        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
-//        let selectedRow = memoryTableView.selectedRowIndexes.first!
-//        simulator.registers.pc = UInt16(selectedRow)
-//        pcChanged()
+        //        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+        //        let selectedRow = memoryTableView.selectedRowIndexes.first!
+        //        simulator.registers.pc = UInt16(selectedRow)
+        //        pcChanged()
         
-//        if memoryTableView.clickedColumn == 0 && memoryTableView.clickedRow >= 0 {
-//            memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
-//            memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
-//        }
+        //        if memoryTableView.clickedColumn == 0 && memoryTableView.clickedRow >= 0 {
+        //            memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
+        //            memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
+        //        }
         
     }
-
+    
     func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
         return !simulatorIsRunning
     }
@@ -268,8 +269,8 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         pcChanged()
         
         // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
-//        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
-//        NSApp.mainWindow?.makeKeyAndOrderFront(self)
+        //        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
+        //        NSApp.mainWindow?.makeKeyAndOrderFront(self)
     }
     
     // MARK: NSTableView stuff
@@ -362,11 +363,11 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
             return newTextField
         }
     }
-
-//    // disable selection of all rows
-//    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-//        return false
-//    }
+    
+    //    // disable selection of all rows
+    //    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+    //        return false
+    //    }
     
     func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
         switch tableColumn?.identifier.rawValue {
@@ -378,7 +379,7 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
             return nil
         }
     }
-
+    
     // color newly-appearing rows green iff the simulator isn't running instructions and the row is of the PC
     func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
         if !simulatorIsRunning && row == simulator.registers.pc {
@@ -386,23 +387,23 @@ class MainViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
         }
     }
     
-//    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
-////        tableview
-//        if let rowView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "memoryTableRowViewIdentifier"), owner: self) as? NSTableRowView {
-////            rowView.wantsLayer = true
-////            rowView.layer?.backgroundColor = CGColor(red: 0, green: 255, blue: 255, alpha: 0.5);
-//
-//            rowView.backgroundColor = .green
-// //            rowView.drawBackground(in: rowView.visibleRect)
-//            return rowView
-//        }
-//
-//        // required b/c registers table view is still around
-//        return nil
-////        assertionFailure()
-//
-//    }
-
+    //    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+    ////        tableview
+    //        if let rowView = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "memoryTableRowViewIdentifier"), owner: self) as? NSTableRowView {
+    ////            rowView.wantsLayer = true
+    ////            rowView.layer?.backgroundColor = CGColor(red: 0, green: 255, blue: 255, alpha: 0.5);
+    //
+    //            rowView.backgroundColor = .green
+    // //            rowView.drawBackground(in: rowView.visibleRect)
+    //            return rowView
+    //        }
+    //
+    //        // required b/c registers table view is still around
+    //        return nil
+    ////        assertionFailure()
+    //
+    //    }
+    
 }
 
 // MARK: NSOpenSavePanelDelegate methods
