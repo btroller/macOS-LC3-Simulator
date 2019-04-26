@@ -40,23 +40,6 @@ import Cocoa
 class MainViewController: NSViewController {
 
     var rowBeingEdited: Int?
-    private var shouldStopExecuting: Bool = false
-    private var simulatorIsRunning: Bool = false
-//    {
-//        willSet {
-//            DispatchQueue.main.async {
-//                switch newValue {
-//                case true:
-//                    self.memoryTableView.rowView(atRow: 1, makeIfNecessary: true)?.interiorBackgroundStyle
-//                    self.memoryTableView.gridColor = .green
-//    //                memoryTableView.selectionHighlightStyle = .sourceList
-//                case false:
-//                    self.memoryTableView.gridColor = .blue
-//    //                memoryTableView.selectionHighlightStyle = .regular
-//                }
-//            }
-//        }
-//    }
 
     // MARK: Constants
     let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
@@ -94,14 +77,8 @@ class MainViewController: NSViewController {
     @IBOutlet weak var registersTableView: NSTableView!
 
     func updateUIAfterSimulatorRun(modifiedRows: IndexSet) {
-        simulatorIsRunning = false
         memoryTableView.reloadModifedRows(modifiedRows)
         pcChanged()
-    }
-
-    // TODO: change to computed property
-    func shouldStopProgramExecution() -> Bool {
-        return shouldStopExecuting
     }
 
     func pcChanged() {
@@ -114,23 +91,17 @@ class MainViewController: NSViewController {
     // MARK: IB actions
     @IBAction func runClickedWithSender(_ sender: AnyObject) {
         print("run clicked")
-        shouldStopExecuting = false
-        simulatorIsRunning = true
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
-//        memoryTableView.abortEditing()
         backgroundQueue.async {
-            self.simulator.runForever(then: self.updateUIAfterSimulatorRun, shouldStopExecuting: self.shouldStopProgramExecution)
+            self.simulator.runForever(finallyUpdateIndexes: self.updateUIAfterSimulatorRun)
         }
         NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
 
     @IBAction func stepInClickedWithSender(_ sender: AnyObject) {
         print("step clicked")
-        shouldStopExecuting = false
-        simulatorIsRunning = true
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
-//        memoryTableView.abortEditing()
-        simulator.stepIn(then: self.updateUIAfterSimulatorRun)
+        simulator.stepIn(finallyUpdateIndexes: self.updateUIAfterSimulatorRun)
         NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
 
@@ -144,10 +115,8 @@ class MainViewController: NSViewController {
         preconditionFailure("not implemented yet")
     }
 
-    // TODO: stop running execution with (STOPPED THINKING HERE)
-    // TODO: try sticking shouldStopExecuting in Simulator class
     @IBAction func stopClickedWithSender(_ sender: AnyObject) {
-        shouldStopExecuting = true
+        simulator.stopRunning()
         NSApp.mainWindow?.toolbar?.validateVisibleItems()
 
     }
@@ -172,7 +141,7 @@ class MainViewController: NSViewController {
     }
 
     @IBAction func setPCPressedWithSender(_ sender: AnyObject) {
-        assert(!simulatorIsRunning && memoryTableView.selectedRowIndexes.count == 1)
+        assert(!simulator.isRunning && memoryTableView.selectedRowIndexes.count == 1)
 
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
         let selectedRow = memoryTableView.selectedRowIndexes.first!
@@ -218,7 +187,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             onItemClicked(self)
         case binaryValueColumnIndex:
             // value (binary) column
-            guard !simulatorIsRunning else { return }
+            guard !simulator.isRunning else { return }
 
             let rowToEdit = self.memoryTableView.clickedRow
             let columnToEdit = self.memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
@@ -229,7 +198,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             self.memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
         case hexValueColumnIndex:
             // value (hex) column
-            guard !simulatorIsRunning else { return }
+            guard !simulator.isRunning else { return }
 
             let rowToEdit = self.memoryTableView.clickedRow
             let columnToEdit = self.memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
@@ -266,7 +235,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
     }
 
     func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
-        return !simulatorIsRunning
+        return !simulator.isRunning
     }
 
     override func viewDidLoad() {
@@ -399,7 +368,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     // color newly-appearing rows green iff the simulator isn't running instructions and the row is of the PC
     func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
-        if !simulatorIsRunning && row == simulator.registers.pc {
+        if !simulator.isRunning && row == simulator.registers.pc {
             rowView.backgroundColor = kPCIndicatorColor
         }
     }
@@ -493,7 +462,7 @@ extension MainViewController: NSTextFieldDelegate {
         }
 
         // don't allow edit to go through if simulator is running
-        guard !simulatorIsRunning else {
+        guard !simulator.isRunning else {
             control.abortEditing()
             return true
         }
@@ -612,7 +581,7 @@ extension NSUserInterfaceItemIdentifier: ExpressibleByStringLiteral {
 extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
 
     var shouldEnableSetPCToSelectedRow: Bool {
-        return !simulatorIsRunning && memoryTableView.selectedRowIndexes.count == 1
+        return !simulator.isRunning && memoryTableView.selectedRowIndexes.count == 1
     }
 
     var shouldEnableToggleBreakpoint: Bool {
@@ -620,11 +589,11 @@ extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
     }
 
     var shouldEnableControlWhichStartsSimulator: Bool {
-        return !simulatorIsRunning
+        return !simulator.isRunning
     }
 
     var shouldEnableStopSimulator: Bool {
-        return simulatorIsRunning
+        return simulator.isRunning
     }
 
     // validation of menu items

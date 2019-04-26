@@ -38,6 +38,13 @@ class Simulator {
     var consoleVC: ConsoleViewController {
         return mainVC.consoleVC!
     }
+    private var _isRunning: Bool = false
+    var isRunning: Bool {
+        return _isRunning
+    }
+    func stopRunning() {
+        _isRunning = false
+    }
 
     class IndexSetTracker {
         private var actualModifedMemoryLocations: IndexSet = []
@@ -218,34 +225,28 @@ class Simulator {
     }
 
     // run until have
-    func stepIn(then: (IndexSet) -> Void) {
+    func stepIn(finallyUpdateIndexes: (IndexSet) -> Void) {
         executeNextInstruction()
 
-        then(modifiedMemoryLocationsTracker.indexes)
+        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
     }
 
     func stepOut() {
         preconditionFailure()
     }
 
-    var shouldResumeRunningForever = false
+    func runForever(finallyUpdateIndexes: (IndexSet) -> Void) {
+        _isRunning = true
 
-    func runForever(then: (IndexSet) -> Void, shouldStopExecuting: () -> Bool) {
-        if shouldResumeRunningForever {
-            executeNextInstruction()
-            shouldResumeRunningForever = false
-        }
-        while (!nextInstructionEntry.shouldBreak && !shouldStopExecuting()) {
+        executeNextInstruction()
+        while (!nextInstructionEntry.shouldBreak && isRunning) {
             executeNextInstruction()
         }
 
-        shouldResumeRunningForever = true
-        then(modifiedMemoryLocationsTracker.indexes)
+        _isRunning = false
+        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
     }
 
-    func stopExecution() {
-
-    }
 }
 
 extension Character {
