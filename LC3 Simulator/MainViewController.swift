@@ -165,6 +165,9 @@ class MainViewController: NSViewController {
             self.simulator = Simulator()
             self.consoleVC?.resetConsole()
             self.viewDidLoad()
+
+            // make the main window the key window again (otherwise, console window becomes key window)
+            NSApp.getWindowWith(identifier: "MainWindowID")?.makeKeyAndOrderFront(self)
         }
     }
 
@@ -679,6 +682,14 @@ class MyNSToolbarItem: NSToolbarItem {
         } else {
             super.validate()
         }
+    }
+
+}
+
+extension NSApplication {
+
+    func getWindowWith(identifier: NSUserInterfaceItemIdentifier) -> NSWindow? {
+        return self.windows.filter({$0.identifier == "MainWindowID"}).first
     }
 
 }
