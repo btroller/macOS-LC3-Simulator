@@ -26,56 +26,56 @@ import Cocoa
 // allow "jump to addresss" and "jump to PC" in menu? probably only both if don't use search bar
 
 class Simulator {
-    
+
     // MARK: constants
-    let kKeyboardPriorityLevel : UInt16 = 4
-    
+    let kKeyboardPriorityLevel: UInt16 = 4
+
     // MARK: state-keeping
     var registers = Registers()
     var memory = Memory()
-    var mainVC : MainViewController!
+    var mainVC: MainViewController!
     // TODO: replace with reference to queue in ConsoleVC
-    var consoleVC : ConsoleViewController {
+    var consoleVC: ConsoleViewController {
         return mainVC.consoleVC!
     }
-    
+
     class IndexSetTracker {
-        private var actualModifedMemoryLocations : IndexSet = []
-        
-        var indexes : IndexSet {
+        private var actualModifedMemoryLocations: IndexSet = []
+
+        var indexes: IndexSet {
             get {
                 let toReturn = actualModifedMemoryLocations
                 actualModifedMemoryLocations = []
                 return toReturn
             }
         }
-        
-        func insert(_ element : Int) {
+
+        func insert(_ element: Int) {
             actualModifedMemoryLocations.insert(element)
         }
     }
-    
+
     let modifiedMemoryLocationsTracker = IndexSetTracker()
-    
+
 //    static let kFinishedRunningWithModifiedMemoryLocationsMessage = NSNotification.Name(rawValue: "finishedRunningWithModifedMemoryLocations")
-    
-    func setMainVC(to vc : MainViewController) {
+
+    func setMainVC(to vc: MainViewController) {
         self.mainVC = vc
         memory.setMainVC(to: vc)
         registers.setMainVC(to: vc)
     }
-    
+
     // UNSURE: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
-    var nextInstructionEntry : Memory.Entry {
+    var nextInstructionEntry: Memory.Entry {
         return memory[registers.pc]
     }
-    
-    enum ExceptionType : UInt16 {
+
+    enum ExceptionType: UInt16 {
         case privilegeModeViolation = 0x00
         case illegalOpcode = 0x01
     }
-    
-    func executeException(ofType exceptionType : ExceptionType) {
+
+    func executeException(ofType exceptionType: ExceptionType) {
         // 1: set privilege mode to supervisor
         registers.privilegeMode = .Supervisor
         // TODO 2: R6 is loaded with the Supervisor Stack Pointer if it does not already contain it
@@ -86,10 +86,10 @@ class Simulator {
         let expandedVector = vector + 0x0100
         // 6: The PC is loaded with the contents of memory location xOlOO or xOlOl, the address of the first instruction in the corresponding exception service routine.
         registers.pc = memory[expandedVector].value
-        
+
         preconditionFailure("TODO: implement exceptions")
     }
-    
+
     // ONLY FOR KEYBOARD
     func executeInterrupt() {
         // 1: set privilege mode to supervisor
@@ -99,15 +99,15 @@ class Simulator {
         // TODO 3: Load R6 with SSP if not already there
         // TODO 4: push PSR and PC of interrupted process onto supervisor stack
         // 5: keyboard supplies its 8-bit interrupt vector
-        let interruptVector : UInt16 = 0x80
+        let interruptVector: UInt16 = 0x80
         // 6: processor expands vector
         let expandedInterruptVector = interruptVector + 0x100
         // 7: load PC with contents of memory at 0x180
         registers.pc = memory.getValue(at: expandedInterruptVector)
-        
+
         preconditionFailure("TODO: implement interrupts")
     }
-    
+
     // TODO: make parameter nil?
     func executeNextInstruction() {
         // execute instruction normally
@@ -116,7 +116,7 @@ class Simulator {
         let entryToExecute = nextInstructionEntry
         let value = entryToExecute.value
         registers.pc += 1
-        
+
 //        print(value.instructionType)
 //        print(value)
         switch (value.instructionType) {
@@ -168,8 +168,7 @@ class Simulator {
                 let temp = memory.getValue(at: registers.r[6])
                 registers.r[6] &+= 1
                 registers.psr = temp
-            }
-            else {
+            } else {
                 // initiate privalege mode exception
                 executeException(ofType: .privilegeModeViolation)
             }
@@ -190,10 +189,10 @@ class Simulator {
 //        default:
 //            print("didn't match instruction type in Simulator")
         }
-        
+
 //        print(entryToExecute.value)
 //        print("registers: \(registers.r)")
-        
+
         // Update I/O stuff
         if (consoleVC.queue.hasNext && !memory.KBSRIsSet) {
             //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
@@ -205,33 +204,33 @@ class Simulator {
             // can safely do b/c I always deal w/ input in DDR - see Memory for other side of this
             memory[Memory.DSR].value.setBit(at: 15, to: 1)
         }
-        
+
         // TODO: check if interrupt to be dealt with
         if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
             executeInterrupt()
         }
     }
-    
+
     // run until have returned to same level as started at?
     func stepOver() {
 //        while ()
         preconditionFailure()
     }
-    
+
     // run until have
-    func stepIn(then : (IndexSet) -> Void) {
+    func stepIn(then: (IndexSet) -> Void) {
         executeNextInstruction()
-        
+
         then(modifiedMemoryLocationsTracker.indexes)
     }
-    
+
     func stepOut() {
         preconditionFailure()
     }
-    
+
     var shouldResumeRunningForever = false
-    
-    func runForever(then : (IndexSet) -> Void, shouldStopExecuting: () -> Bool) {
+
+    func runForever(then: (IndexSet) -> Void, shouldStopExecuting: () -> Bool) {
         if shouldResumeRunningForever {
             executeNextInstruction()
             shouldResumeRunningForever = false
@@ -239,18 +238,18 @@ class Simulator {
         while (!nextInstructionEntry.shouldBreak && !shouldStopExecuting()) {
             executeNextInstruction()
         }
-        
+
         shouldResumeRunningForever = true
         then(modifiedMemoryLocationsTracker.indexes)
     }
-    
+
     func stopExecution() {
-        
+
     }
 }
 
 extension Character {
-    var toUInt16ASCII : UInt16 {
+    var toUInt16ASCII: UInt16 {
         return UInt16(truncating: self.unicodeScalars.first!.value as NSNumber)
     }
 }

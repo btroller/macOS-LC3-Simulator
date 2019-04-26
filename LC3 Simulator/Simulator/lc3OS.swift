@@ -9,8 +9,8 @@
 import Foundation
 
 class LC3OS {
-    
-    static let nonZeroValues : [UInt16 : UInt16] = [
+
+    static let nonZeroValues: [UInt16: UInt16] = [
         // Trap vector table (valid entries)
         0x0020: 0x0400,
         0x0021: 0x0430,
@@ -136,20 +136,20 @@ class LC3OS {
         // Machine control register
         0xFFFE: 0xFFFF
     ]
-    
+
     static let osSymbols = [
-        "TRAP_GETC":  0x0400,
-        "TRAP_OUT":   0x0430,
-        "TRAP_PUTS":  0x0450,
-        "TRAP_IN":    0x04A0,
+        "TRAP_GETC": 0x0400,
+        "TRAP_OUT": 0x0430,
+        "TRAP_PUTS": 0x0450,
+        "TRAP_IN": 0x04A0,
         "TRAP_PUTSP": 0x04E0,
-        "TRAP_HALT":  0xFD70,
-        "KBSR":       0xFE00,
-        "KBDR":       0xFE02,
-        "DSR":        0xFE04,
-        "DDR":        0xFE06,
-        "MCR":        0xFFFE,
-        "SS_START":   0x0300
+        "TRAP_HALT": 0xFD70,
+        "KBSR": 0xFE00,
+        "KBDR": 0xFE02,
+        "DSR": 0xFE04,
+        "DDR": 0xFE06,
+        "MCR": 0xFFFE,
+        "SS_START": 0x0300
     ]
-    
+
 }
