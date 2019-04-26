@@ -10,8 +10,8 @@ import XCTest
 @testable import LC3_Simulator
 
 class ConsoleInputQueueTests: XCTestCase {
-    var queue : ConsoleInputQueue<Character>!
-    
+    var queue: ConsoleInputQueue<Character>!
+
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         queue = ConsoleInputQueue<Character>()

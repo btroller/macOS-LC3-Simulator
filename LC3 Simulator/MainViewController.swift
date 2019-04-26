@@ -16,14 +16,20 @@
 // TODO: use notifications and callbacks to talk between model and controller classes (as opposed to keeping references to controller classes around)
 // TODO: have fancier instruction string descriptions? maybe include ascii representation or numerical representation of what's there, too (possibly in separate columns)
 // TODO: remove watching for and handlers for unused Notifications
+// TODO: thoroughly test of Simulator
+// TODO: try using IB to connect and have identifiers done w/ bindings
 
 // MAYBE: maybe have different formatting in search bar to indicate it's a hex search
 // MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
 // MABYE: allow scaling of simulator horizontally, scaling only the label column (or allowing to change size of label/instruciton columns to accomidate longer instructions or labels)
 // MAYBE: add "Set PC" option in context menu - I'm starting to think this is less useful as time goes on
+// MAYBE: set selection indicator color to grey when simulator is running
 
+// EVENTUALLY: disable ⌘F shortuct when the address search bar isn't in view. This doesn't currenlty break anything, but I'd guess it's misleading. Maybe make the search bar permanent somehow
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
 // EVENTUALLY : move logic that should be run on simulator reinitialization to separate function from viewDidLoad() so I can call it separately and also from viewDidLoad()
+// EVENTUALLY: make preference for choosing an OS (maybe some provided ones and then they can also have custom ones)
+// EVENTUALLY: could have log of executed instructions w/ calculated values for debugging
 
 // ASK: how does he like position of searched-for address?
 // ASK: should I use his OS?
@@ -36,12 +42,28 @@ class MainViewController: NSViewController {
     var rowBeingEdited : Int?
     private var shouldStopExecuting : Bool = false
     private var simulatorIsRunning : Bool = false
+//    {
+//        willSet {
+//            DispatchQueue.main.async {
+//                switch newValue {
+//                case true:
+//                    self.memoryTableView.rowView(atRow: 1, makeIfNecessary: true)?.interiorBackgroundStyle
+//                    self.memoryTableView.gridColor = .green
+//    //                memoryTableView.selectionHighlightStyle = .sourceList
+//                case false:
+//                    self.memoryTableView.gridColor = .blue
+//    //                memoryTableView.selectionHighlightStyle = .regular
+//                }
+//            }
+//        }
+//    }
     
     // MARK: Constants
     let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
     let kStatusAvailableImage = NSImage(imageLiteralResourceName: NSImage.statusAvailableName)
     let kStatusUnavailableIMage = NSImage(imageLiteralResourceName: NSImage.statusUnavailableName)
     
+    // TODO: try keeping this thing in interface builder
     let kPCIndicatorColor : NSColor = NSColor(named: NSColor.Name("PCIndicatorColor"))!
     
     let kValueBinaryColumnIdentifier : NSUserInterfaceItemIdentifier = "valueBinaryColumnID"
@@ -133,12 +155,7 @@ class MainViewController: NSViewController {
     // when requested to jump to the PC, insert the PC as a string into the search bar and search for it
     @IBAction func scrollToPCClickedWithSender(_ sender: AnyObject) {
         DispatchQueue.main.async {
-            if let windowController = NSApp.mainWindow?.windowController as? MainWindowController {
-                let pcRow = self.simulator.registers.pc
-                let str = String(format: "%X", pcRow)
-                
-                windowController.makeAddressSearchFieldFirstResponderWithStringAndSearch(str)
-            }
+            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
         }
     }
     
