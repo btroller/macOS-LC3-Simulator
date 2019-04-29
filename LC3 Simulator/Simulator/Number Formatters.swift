@@ -87,7 +87,6 @@ class HexNumberFormatter: Formatter {
         }
 
         return String(format: "%04X", inUInt16)
-
     }
 
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {

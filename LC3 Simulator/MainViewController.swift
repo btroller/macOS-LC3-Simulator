@@ -6,10 +6,11 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
+// Today: register UI, use IR?, interrupts/exceptions
+
 // TODO: decide register UI
 // TODO:   disable editing of registers while running continuously
 // TODO: add "Reset" option to Simulator menu to reload all files loaded previously (and assemble all assembly files)
-// TODO: automatic assembling and loading
 // TODO: add list of previously-searched-for addresses
 // TODO: add count of how many characters are buffered and button to clear buffered characters in Console window
 // TODO: come up with something cleaner than `rowBeingEdited`
@@ -19,6 +20,7 @@
 // TODO: thoroughly test of Simulator
 // TODO: try using IB to connect and have identifiers done w/ bindings
 
+// MAYBE: allow editing of labels?
 // MAYBE: maybe have different formatting in search bar to indicate it's a hex search
 // MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
 // MABYE: allow scaling of simulator horizontally, scaling only the label column (or allowing to change size of label/instruciton columns to accomidate longer instructions or labels)
@@ -30,9 +32,8 @@
 // EVENTUALLY : move logic that should be run on simulator reinitialization to separate function from viewDidLoad() so I can call it separately and also from viewDidLoad()
 // EVENTUALLY: make preference for choosing an OS (maybe some provided ones and then they can also have custom ones)
 // EVENTUALLY: could have log of executed instructions w/ calculated values for debugging
-
-// ASK: how does he like position of searched-for address?
-// ASK: should I use his OS?
+// EVENTUALLY: give list of previously searched for addresses in search bar
+// MAYBE EVENTUALLY: add preference for slow output printing to emphasize characters being outputted? Doesn't seem to useful to me.
 
 import Foundation
 import Cocoa
@@ -48,7 +49,7 @@ class MainViewController: NSViewController {
 
     // TODO: try keeping this thing in interface builder
     let kPCIndicatorColor: NSColor = NSColor(named: NSColor.Name("PCIndicatorColor"))!
-
+    
     let kValueBinaryColumnIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryColumnID"
     let kValueBinaryCellIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryCellID"
     let kValueBinaryTextFieldIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryTextFieldID"
@@ -72,10 +73,35 @@ class MainViewController: NSViewController {
 
     let backgroundQueue = DispatchQueue.global(qos: .userInteractive)
 
-    // MARK: IB elements
+    // MARK: IB outlets
+    @IBOutlet var hexNumberFormatter: HexNumberFormatter!
+    @IBOutlet var binaryNumberFormatter: BinaryNumberFormatter!
     @IBOutlet weak var memoryTableView: NSTableView!
-    @IBOutlet weak var registersTableView: NSTableView!
-
+    // specifically, for registers UI
+    @IBOutlet weak var r0HexTextField: NSTextField!
+    @IBOutlet weak var r0DecimalTextField: NSTextField!
+    @IBOutlet weak var r1HexTextField: NSTextField!
+    @IBOutlet weak var r1DecimalTextField: NSTextField!
+    @IBOutlet weak var r2HexTextField: NSTextField!
+    @IBOutlet weak var r2DecmialTextField: NSTextField!
+    @IBOutlet weak var r3HexTextField: NSTextField!
+    @IBOutlet weak var r3DecimalTextField: NSTextField!
+    @IBOutlet weak var r4HexTextField: NSTextField!
+    @IBOutlet weak var r4DecimalTextField: NSTextField!
+    @IBOutlet weak var r5HexTextField: NSTextField!
+    @IBOutlet weak var r5DecimalTextField: NSTextField!
+    @IBOutlet weak var r6HexTextField: NSTextField!
+    @IBOutlet weak var r6DecimalTextField: NSTextField!
+    @IBOutlet weak var r7HexTextField: NSTextField!
+    @IBOutlet weak var r7DecimalTextField: NSTextField!
+    @IBOutlet weak var pcHexTextField: NSTextField!
+    @IBOutlet weak var pcDecimalTextField: NSTextField!
+    @IBOutlet weak var irHexTextField: NSTextField!
+    @IBOutlet weak var irDecimalTextField: NSTextField!
+    @IBOutlet weak var psrHexTextField: NSTextField!
+    @IBOutlet weak var psrDecimalTextField: NSTextField!
+    @IBOutlet weak var ccTextField: NSTextField!
+    
     func updateUIAfterSimulatorRun(modifiedRows: IndexSet) {
         memoryTableView.reloadModifedRows(modifiedRows)
         pcChanged()
@@ -124,7 +150,10 @@ class MainViewController: NSViewController {
     // when requested to jump to the PC, insert the PC as a string into the search bar and search for it
     @IBAction func scrollToPCClickedWithSender(_ sender: AnyObject) {
         DispatchQueue.main.async {
-            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
+            let pcAsInt = Int(self.simulator.registers.pc)
+            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(pcAsInt)
+            // selects row of PC for consistency with searching for address
+            self.memoryTableView.selectRowIndexes([pcAsInt], byExtendingSelection: false)
         }
     }
 
@@ -151,6 +180,29 @@ class MainViewController: NSViewController {
 
     func setConsoleVC(to vc: ConsoleViewController) {
         self.consoleVC = vc
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // display the console window when this VC loads
+        // TODO: maybe use this sender instead of NSApp.mainWindow... in Console stuff
+        performSegue(withIdentifier: "showConsoleWindow", sender: self)
+        
+        memory = simulator.memory
+        simulator.setMainVC(to: self)
+        
+        // show memory table view appropriately
+        DispatchQueue.main.async {
+            self.memoryTableView.reloadData()
+            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
+        }
+        // show PC appropriately
+        pcChanged()
+        
+        // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
+        //        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
+        //        NSApp.mainWindow?.makeKeyAndOrderFront(self)
     }
 
 }
@@ -236,29 +288,6 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
         return !simulator.isRunning
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // display the console window when this VC loads
-        // TODO: maybe use this sender instead of NSApp.mainWindow... in Console stuff
-        performSegue(withIdentifier: "showConsoleWindow", sender: self)
-
-        memory = simulator.memory
-        simulator.setMainVC(to: self)
-
-        // show memory table view appropriately
-        DispatchQueue.main.async {
-            self.memoryTableView.reloadData()
-            self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(self.simulator.registers.pc))
-        }
-        // show PC appropriately
-        pcChanged()
-
-        // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
-        //        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
-        //        NSApp.mainWindow?.makeKeyAndOrderFront(self)
     }
 
     // MARK: NSTableView stuff
@@ -350,21 +379,16 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         }
     }
 
-    //    // disable selection of all rows
-    //    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-    //        return false
-    //    }
-
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        switch tableColumn?.identifier.rawValue {
-        case "valueHexColumnID":
-            return memory[UInt16(row)].value
-        case "valueBinaryCellID":
-            return memory[UInt16(row)].value
-        default:
-            return nil
-        }
-    }
+//    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+//        switch tableColumn?.identifier.rawValue {
+//        case "valueHexCellID":
+//            return memory[UInt16(row)].value
+//        case "valueBinaryCellID":
+//            return memory[UInt16(row)].value
+//        default:
+//            return nil
+//        }
+//    }
 
     // color newly-appearing rows green iff the simulator isn't running instructions and the row is of the PC
     func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
@@ -427,14 +451,14 @@ extension MainViewController: NSOpenSavePanelDelegate {
 
 }
 
+// parsing new values from memory table view
 // TODO: put scanning functions inside of control()
 extension MainViewController: NSTextFieldDelegate {
 
     func scanBinaryStringToUInt16(_ string: String) -> UInt16? {
-        let formatter = BinaryNumberFormatter()
         var obj: AnyObject = 0 as AnyObject
         let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+        if binaryNumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
             return obj as? UInt16
         } else {
             return nil
@@ -442,10 +466,9 @@ extension MainViewController: NSTextFieldDelegate {
     }
 
     func scanHexStringToUInt16(_ string: String) -> UInt16? {
-        let formatter = HexNumberFormatter()
         var obj: AnyObject = 0 as AnyObject
         let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+        if hexNumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
             return obj as? UInt16
         } else {
             return nil
@@ -494,8 +517,11 @@ extension MainViewController {
 
     @IBAction func searchingFinished(_ sender: NSSearchField) {
         if let scannedValue = scanHexStringToUInt16(sender.stringValue) {
+            let scannedValueAsInt = Int(scannedValue)
             DispatchQueue.main.async {
-                self.memoryTableView.scrollToMakeRowVisibleWithSpacing(Int(scannedValue))
+                self.memoryTableView.selectRowIndexes([scannedValueAsInt], byExtendingSelection: false)
+                self.memoryTableView.scrollToMakeRowVisibleWithSpacing(scannedValueAsInt)
+                // TODO: try making memory table view key view / first responder
             }
         }
     }
@@ -514,14 +540,10 @@ extension NSTableView {
 
     // utility method used to scroll to a row with spacing around it
     // NOTE: relies on caller executing this on main thread
+    // two scrolls are used to make spacing easier - otherwise there's some annoyingly complex logic here
     func scrollToMakeRowVisibleWithSpacing(_ row: Int) {
-//        let visibleRect = self.visibleRect
-//        let visibleRange = self.rows(in: visibleRect)
-
-        // two scrolls are used to make spacing easier - otherwise there's some annoyingly complex logic here
-//        self.scrollRowToVisible(min(row - 3 + visibleRange.length - 3, self.numberOfRows - 1))
         self.scrollRowToVisible(self.numberOfRows - 1)
-        self.scrollRowToVisible(max(row /* - 3 */, 0))
+        self.scrollRowToVisible(max(row, 0))
     }
 
     // gets all column indexes in a NSTableView
@@ -531,18 +553,15 @@ extension NSTableView {
 
     // NOTE: createNSTableCellViewWithStringIdentifier() is implemented as 2 separate functions for (hopeful) speed's sake, but could (and was previously) implemented as a single function with nil as default value for stringValue and imageValue
 
-    func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, stringValue: String) -> NSTableCellView {
+    @inline(__always) func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, stringValue: String) -> NSTableCellView {
         let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
 
         cellView.textField?.stringValue = stringValue
-        if let fontSize = cellView.textField?.font?.pointSize, let font = NSFont.userFixedPitchFont(ofSize: fontSize) {
-            cellView.textField?.font = font
-        }
 
         return cellView
     }
 
-    func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, imageValue: NSImage) -> NSTableCellView {
+    @inline(__always) func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, imageValue: NSImage) -> NSTableCellView {
         let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
 
         cellView.imageView?.image = imageValue
@@ -658,7 +677,9 @@ class MyNSToolbarItem: NSToolbarItem {
 extension NSApplication {
 
     func getWindowWith(identifier: NSUserInterfaceItemIdentifier) -> NSWindow? {
-        return self.windows.filter({$0.identifier == "MainWindowID"}).first
+        let windowsWithIdentifier = self.windows.filter({$0.identifier == "MainWindowID"})
+        assert(windowsWithIdentifier.count == 1)
+        return windowsWithIdentifier.first
     }
 
 }
