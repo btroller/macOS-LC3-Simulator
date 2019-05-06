@@ -180,3 +180,124 @@ class SearchBarHexNumberFormatter: Formatter {
     }
 
 }
+
+class Base10NumberFormatter : Formatter {
+    
+    override func string(for obj: Any?) -> String? {
+        guard let inUInt16 = obj as? UInt16 else {
+            return nil
+        }
+        
+        return String(format: "%hu", inUInt16)
+    }
+    
+    /*
+    // gives string without starting `x`
+    // TODO: preserve editing position if possible
+    override func editingString(for obj: Any) -> String? {
+        guard let inUInt16 = obj as? UInt16 else {
+            return nil
+        }
+        
+        return String(format: "%04X", inUInt16)
+    }
+ */
+    
+    override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
+        let scanner = Scanner(string: string)
+        var result: Int32 = 0
+        // BEWARE: might have issue with overflow here
+        if !scanner.scanInt32(&result) {
+            // scanner failed to scan from `string`
+            error?.pointee = "bad input - failed to scan" as NSString
+            return false
+        } else if scanner.scanLocation != string.count {
+            // scanner didn't scan all of `string` - must be bad characters in it somewhere
+            error?.pointee = "bad input - disallowed characters present" as NSString
+            return false
+        }
+        
+        let shortenedResult = UInt16(result & 0x0FFFF)
+        if (shortenedResult != result) {
+            // overflow
+            error?.pointee = "bad input - too large" as NSString
+            return false
+        }
+        
+        obj?.pointee = shortenedResult as AnyObject
+        return true
+    }
+    
+    // check whether a partial string is valid, also preserve cursor position
+    override func isPartialStringValid(_ partialStringPtr: AutoreleasingUnsafeMutablePointer<NSString>, proposedSelectedRange proposedSelRangePtr: NSRangePointer?, originalString origString: String, originalSelectedRange origSelRange: NSRange, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
+        
+        let allowedCharacters = CharacterSet.decimalDigits
+        
+        return /* partialString.count > 0 && */ partialStringPtr.pointee.length <= 5 && allowedCharacters.isSuperset(of: CharacterSet(charactersIn: partialStringPtr.pointee.uppercased))
+    }
+    
+}
+
+class CCFormatter: Formatter {
+    
+    override func string(for obj: Any?) -> String? {
+        guard let ccType = obj as? Registers.CCType else {
+            return nil
+        }
+        
+        switch ccType {
+        case .N:
+            return "N"
+        case .Z:
+            return "Z"
+        case .P:
+            return "P"
+        }
+    }
+    
+    override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
+        
+        switch string.uppercased() {
+        case "N":
+            obj?.pointee = Registers.CCType.N as AnyObject
+        case "Z":
+            obj?.pointee = Registers.CCType.Z as AnyObject
+        case "P":
+            obj?.pointee = Registers.CCType.P as AnyObject
+        default:
+            return false
+        }
+        
+//        let scanner = Scanner(string: string)
+//        var result: Int32 = 0
+//        // BEWARE: might have issue with overflow here
+//        if !scanner.scanInt32(&result) {
+//            // scanner failed to scan from `string`
+//            error?.pointee = "bad input - failed to scan" as NSString
+//            return false
+//        } else if scanner.scanLocation != string.count {
+//            // scanner didn't scan all of `string` - must be bad characters in it somewhere
+//            error?.pointee = "bad input - disallowed characters present" as NSString
+//            return false
+//        }
+//
+//        let shortenedResult = UInt16(result & 0x0FFFF)
+//        if (shortenedResult != result) {
+//            // overflow
+//            error?.pointee = "bad input - too large" as NSString
+//            return false
+//        }
+//
+//        obj?.pointee = shortenedResult as AnyObject
+        return true
+    }
+    
+    // check whether a partial string is valid, also preserve cursor position
+    override func isPartialStringValid(_ partialStringPtr: AutoreleasingUnsafeMutablePointer<NSString>, proposedSelectedRange proposedSelRangePtr: NSRangePointer?, originalString origString: String, originalSelectedRange origSelRange: NSRange, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
+        
+        let allowedCharacters : CharacterSet = ["N", "Z", "P"]
+        
+        return /* partialString.count > 0 && */ partialStringPtr.pointee.length <= 1 && allowedCharacters.isSuperset(of: CharacterSet(charactersIn: partialStringPtr.pointee.uppercased))
+    }
+    
+}

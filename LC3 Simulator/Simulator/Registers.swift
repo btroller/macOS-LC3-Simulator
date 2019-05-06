@@ -36,15 +36,35 @@ class Registers {
 //        }
 //    }
 
-    var ir: UInt16 = 0
-    var psr: UInt16 = 0x2 // set CC to N = 0, Z = 1, P = 0
-//    var cc : UInt16 = 0
+    var ir: UInt16 = 0x0000
+    var psr: UInt16 = 0x0002 // set CC to N = 0, Z = 1, P = 0
+    
+    enum CCType: String {
+        case N = "N"
+        case Z = "Z"
+        case P = "P"
+    }
+    var cc : CCType {
+        if N {
+            return .N
+        }
+        else if Z {
+            return .Z
+        }
+        else {
+            return .P
+        }
+    }
+    
     var N: Bool {
         get {
             return psr.getBit(at: 2) == 1
         }
         set {
-            psr.setBit(at: 2, to: newValue ? 1 : 0)
+            precondition(newValue == true)
+            psr.setBit(at: 2, to: 1)
+            psr.setBit(at: 1, to: 0)
+            psr.setBit(at: 0, to: 0)
         }
     }
     var Z: Bool {
@@ -52,7 +72,10 @@ class Registers {
             return psr.getBit(at: 1) == 1
         }
         set {
-            psr.setBit(at: 1, to: newValue ? 1 : 0)
+            precondition(newValue == true)
+            psr.setBit(at: 2, to: 0)
+            psr.setBit(at: 1, to: 1)
+            psr.setBit(at: 0, to: 0)
         }
     }
     var P: Bool {
@@ -60,7 +83,10 @@ class Registers {
             return psr.getBit(at: 0) == 1
         }
         set {
-            psr.setBit(at: 0, to: newValue ? 1 : 0)
+            precondition(newValue == true)
+            psr.setBit(at: 2, to: 0)
+            psr.setBit(at: 1, to: 0)
+            psr.setBit(at: 0, to: 1)
         }
     }
     var r: [UInt16] = [UInt16].init(repeating: 0, count: 8)

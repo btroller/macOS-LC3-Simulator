@@ -102,6 +102,64 @@ class MainViewController: NSViewController {
     @IBOutlet weak var psrDecimalTextField: NSTextField!
     @IBOutlet weak var ccTextField: NSTextField!
     
+    class RegistersUI {
+        
+        class DecimalHexTextFieldPair {
+            
+            var hexTextField : NSTextField
+            var decimalTextField : NSTextField
+            
+            init(hexTextField : NSTextField, decimalTextField : NSTextField) {
+                self.hexTextField = hexTextField
+                self.decimalTextField = decimalTextField
+            }
+            
+        }
+        
+        var regs : [DecimalHexTextFieldPair]
+        var pc : DecimalHexTextFieldPair
+        var ir : DecimalHexTextFieldPair
+        var psr : DecimalHexTextFieldPair
+        var cc : NSTextField
+        
+        init(r0: [NSTextField], r1: [NSTextField], r2: [NSTextField], r3: [NSTextField], r4: [NSTextField], r5: [NSTextField], r6: [NSTextField], r7: [NSTextField], pc: [NSTextField], ir: [NSTextField], psr: [NSTextField], cc: NSTextField) {
+            self.regs = [DecimalHexTextFieldPair(hexTextField: r0[0], decimalTextField: r0[1]), DecimalHexTextFieldPair(hexTextField: r1[0], decimalTextField: r1[1]), DecimalHexTextFieldPair(hexTextField: r2[0], decimalTextField: r2[1]), DecimalHexTextFieldPair(hexTextField: r3[0], decimalTextField: r3[1]), DecimalHexTextFieldPair(hexTextField: r4[0], decimalTextField: r4[1]), DecimalHexTextFieldPair(hexTextField: r5[0], decimalTextField: r5[1]), DecimalHexTextFieldPair(hexTextField: r6[0], decimalTextField: r6[1]), DecimalHexTextFieldPair(hexTextField: r7[0], decimalTextField: r7[1])]
+            self.pc = DecimalHexTextFieldPair(hexTextField: pc[0], decimalTextField: pc[1])
+            self.ir = DecimalHexTextFieldPair(hexTextField: ir[0], decimalTextField: ir[1])
+            self.psr = DecimalHexTextFieldPair(hexTextField: psr[0], decimalTextField: psr[1])
+            self.cc = cc
+        }
+        
+    }
+    
+    var registersUI : RegistersUI?
+    
+    func reloadRegisterUI() {
+        DispatchQueue.main.async {
+            for regNum in 0...7 {
+                self.registersUI?.regs[regNum].hexTextField.intValue = Int32(self.simulator.registers.r[regNum])
+                self.registersUI?.regs[regNum].decimalTextField.intValue = Int32(self.simulator.registers.r[regNum])
+            }
+            self.registersUI?.pc.hexTextField.intValue = Int32(self.simulator.registers.pc)
+            self.registersUI?.pc.decimalTextField.intValue = Int32(self.simulator.registers.pc)
+            self.registersUI?.ir.hexTextField.intValue = Int32(self.simulator.registers.ir)
+            self.registersUI?.ir.decimalTextField.intValue = Int32(self.simulator.registers.ir)
+            self.registersUI?.psr.hexTextField.intValue = Int32(self.simulator.registers.psr)
+            self.registersUI?.psr.decimalTextField.intValue = Int32(self.simulator.registers.psr)
+            
+            let ccString = self.simulator.registers.cc.rawValue
+//            switch self.simulator.registers.cc {
+//            case .N:
+//                ccString = "N"
+//            case .Z:
+//                ccString = "Z"
+//            case .P:
+//                ccString = "P"
+//            }
+            self.registersUI?.cc.stringValue = ccString
+        }
+    }
+    
     func updateUIAfterSimulatorRun(modifiedRows: IndexSet) {
         memoryTableView.reloadModifedRows(modifiedRows)
         pcChanged()
@@ -111,6 +169,7 @@ class MainViewController: NSViewController {
         DispatchQueue.main.async {
             // if row of PC is visible, change its color to indicate that the PC is set to it
             self.memoryTableView.rowView(atRow: Int(self.simulator.registers.pc), makeIfNecessary: false)?.backgroundColor = self.kPCIndicatorColor
+            self.reloadRegisterUI()
         }
     }
 
@@ -199,6 +258,9 @@ class MainViewController: NSViewController {
         }
         // show PC appropriately
         pcChanged()
+        // initialize register UI
+        registersUI = RegistersUI(r0: [r0HexTextField, r0DecimalTextField], r1: [r1HexTextField, r1DecimalTextField], r2: [r2HexTextField, r2DecmialTextField], r3: [r3HexTextField, r3DecimalTextField], r4: [r4HexTextField, r4DecimalTextField], r5: [r5HexTextField, r5DecimalTextField], r6: [r6HexTextField, r6DecimalTextField], r7: [r7HexTextField, r7DecimalTextField], pc: [pcHexTextField, pcDecimalTextField], ir: [irHexTextField, irDecimalTextField], psr: [psrHexTextField, psrDecimalTextField], cc: ccTextField)
+        reloadRegisterUI()
         
         // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
         //        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
@@ -474,15 +536,61 @@ extension MainViewController: NSTextFieldDelegate {
             return nil
         }
     }
+    
+    func scanBase10StringToUInt16(_ string: String) -> UInt16? {
+        var obj: AnyObject = 0 as AnyObject
+        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
+        let base10NumberFormatter = Base10NumberFormatter() // TODO: use IBOutlet to reference existing Base10NumberFormatter in storyboard
+        if base10NumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+            return obj as? UInt16
+        } else {
+            return nil
+        }
+    }
+    
+    // TODO: figure out why CCFormatter was causing errors when run previously. The return value seemed fine -- I think the autoreleasing pointer junk is what killed it
+    func scanCCStringToCCType(_ string: String) -> Registers.CCType? {
+        switch string {
+        case "N":
+            return .N
+        case "Z":
+            return .Z
+        case "P":
+            return .P
+        default:
+            return nil
+        }
+//        var obj: AnyObject = 0 as AnyObject
+//        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
+//        let ccFormatter = CCFormatter() // TODO: use IBOutlet to reference existing Base10NumberFormatter in storyboard
+//        if ccFormatter.getObjectValue(pointer, for: string, errorDescription: nil), let ccType = obj as? Registers.CCType {
+//            switch ccType {
+//            case .N:
+//                return .N
+//            case .Z:
+//                return .Z
+//            case .P:
+//                return .P
+//            }
+//
+////            return obj as? Registers.CCType
+//        } else {
+//            return nil
+//        }
+    }
 
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 
-        // always make the text field non-editable again after finished editing
-        defer {
-            (control as? NSTextField)?.isEditable = false
-        }
+//        // always make the text field non-editable again after finished editing
+//        defer {
+//            // set isEditable to false if it's a text box from the table view
+//            let memoryTableViewTextFieldIdentifiers: Set = [kValueHexTextFieldIdentifier, kValueBinaryTextFieldIdentifier]
+//            if let controlIdentifier = control.identifier, memoryTableViewTextFieldIdentifiers.contains(controlIdentifier), let controlAsTextField = control as? NSTextField {
+//                    controlAsTextField.isEditable = false
+//            }
+//        }
 
         // don't allow edit to go through if simulator is running
         guard !simulator.isRunning else {
@@ -491,21 +599,84 @@ extension MainViewController: NSTextFieldDelegate {
         }
 
         // put new value into memory, then reload table view
-        DispatchQueue.main.async {
-            switch control.identifier {
-            case self.kValueHexTextFieldIdentifier:
-                if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
+        switch control.identifier {
+        case self.kValueHexTextFieldIdentifier:
+            if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
+                DispatchQueue.main.async {
                     self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                    self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
                 }
-            case self.kValueBinaryTextFieldIdentifier:
-                if let parsedString = self.scanBinaryStringToUInt16(fieldEditor.string) {
-                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                if let controlAsTextField = control as? NSTextField {
+                    controlAsTextField.isEditable = false
                 }
-            default:
-                preconditionFailure("Failed to match identifier of control in control()")
             }
-
-            self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
+        case self.kValueBinaryTextFieldIdentifier:
+            if let parsedString = self.scanBinaryStringToUInt16(fieldEditor.string) {
+                DispatchQueue.main.async {
+                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                    self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
+                }
+                if let controlAsTextField = control as? NSTextField {
+                    controlAsTextField.isEditable = false
+                }
+            }
+        default:
+            // a text field from the registers
+            if let decimalRegNum = registersUI?.regs.firstIndex(where: { $0.decimalTextField === control }) {
+                if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
+                    DispatchQueue.main.async {
+                        self.simulator.registers.r[decimalRegNum] = parsedString
+//                        self.reloadRegisterUI()
+                    }
+                }
+            }
+            else if let hexRegNum = registersUI?.regs.firstIndex(where: { $0.hexTextField === control }) {
+                if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
+                    DispatchQueue.main.async {
+                        self.simulator.registers.r[hexRegNum] = parsedString
+//                        self.reloadRegisterUI()
+                    }
+                }
+            }
+            else if control === registersUI?.pc.decimalTextField {
+                if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
+                    DispatchQueue.main.async {
+                        self.memoryTableView.resetRowColorOf(row: Int(self.simulator.registers.pc))
+                        self.simulator.registers.pc = parsedString
+//                        self.reloadRegisterUI()
+                    }
+                }
+            }
+            else if control === registersUI?.pc.hexTextField {
+                if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
+                    DispatchQueue.main.async {
+                        self.memoryTableView.resetRowColorOf(row: Int(self.simulator.registers.pc))
+                        self.simulator.registers.pc = parsedString
+//                        self.reloadRegisterUI()
+                    }
+                }
+            }
+            else if control === registersUI?.cc {
+                if let parsedCCType = self.scanCCStringToCCType(fieldEditor.string) {
+                    switch parsedCCType {
+                    case .N:
+                        self.simulator.registers.N = true
+                    case .Z:
+                        self.simulator.registers.Z = true
+                    case .P:
+                        self.simulator.registers.P = true
+                    }
+                }
+            }
+            // TODO: deal w/ IR, and PSR
+//            if let registersUI = registersUI, registersUI.regs.contains(where: { (pair) -> Bool in
+//                return pair.decimalTextField === control || pair.hexTextField === control
+//            }) {
+//                let regNum = registersUI.regs.index(where: { $0.decimalTextField === control || $0.hexTextField === control })
+//            }
+            reloadRegisterUI()
+//            return true
+//            preconditionFailure("Failed to match identifier of control in control()")
         }
 
         return true

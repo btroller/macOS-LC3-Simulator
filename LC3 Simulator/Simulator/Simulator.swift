@@ -14,7 +14,6 @@ import Cocoa
 // have way to manage files to be assembled and loaded each time so you can avoid loading from previously chosen ones
 //  should I support C-file compiling as well? probably not necessary
 // try using NSTask to support lc3as functionality
-// clarify with Bellardo what behavior he wants if an instruction is invalid -- I think he said it should trigger an exception for bad instructions
 // consider making everything rewindable like Time Machine so you can easily undo some number of past actions -- could be simple and just have a copy of registers/simulator (use struct so that it's very easy) or intelligently make note of everything that's changed and rewind from there
 // figure out when to stop executing for each case of step in, step out, etc -- should it be based on returning to an address (easy enough to store a copy w/ a let constant) or do I wait until a specific return happens? should notice after instruciton executes and PC is updated -- but it's not as simple as seeing that the PC is where it would've been otherwise, b/c that's not necessarily returning with RET or similar. You could just wind up there serendipitously through a mistake if somehting like JMP to lower-number address, keep executing and don't return until go through original code and hit original jump, htne pause. That's not really the same as a normal RET
 
