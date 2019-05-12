@@ -139,7 +139,7 @@ class Simulator {
             registers[value.SR_DR] = registers[value.SR1] & UInt16(bitPattern: value.sextImm5)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .BR:
-            if ((registers.N && value.N) || (registers.Z && value.Z) || (registers.P && value.P)) {
+            if ((registers.cc == .N && value.N) || (registers.cc == .Z && value.Z) || (registers.cc == .P && value.P)) {
                 registers.pc = registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)
             }
         case .JMP:

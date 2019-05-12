@@ -45,18 +45,31 @@ class Registers {
         case P = "P"
     }
     var cc : CCType {
-        if N {
-            return .N
+        get {
+            if N {
+                return .N
+            }
+            else if Z {
+                return .Z
+            }
+            else {
+                return .P
+            }
         }
-        else if Z {
-            return .Z
+        set {
+            switch newValue {
+            case .N:
+                self.N = true
+            case .Z:
+                self.Z = true
+            case .P:
+                self.P = true
+            }
         }
-        else {
-            return .P
-        }
+        
     }
     
-    var N: Bool {
+    private var N: Bool {
         get {
             return psr.getBit(at: 2) == 1
         }
@@ -67,7 +80,7 @@ class Registers {
             psr.setBit(at: 0, to: 0)
         }
     }
-    var Z: Bool {
+    private var Z: Bool {
         get {
             return psr.getBit(at: 1) == 1
         }
@@ -78,7 +91,7 @@ class Registers {
             psr.setBit(at: 0, to: 0)
         }
     }
-    var P: Bool {
+    private var P: Bool {
         get {
             return psr.getBit(at: 0) == 1
         }
@@ -151,10 +164,6 @@ class Registers {
     }
 
     func setCC(basedOn value: UInt16) {
-        N = false
-        Z = false
-        P = false
-
         let signedValue = Int16(bitPattern: value)
         if signedValue < 0 {
             N = true

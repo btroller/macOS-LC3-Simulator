@@ -219,6 +219,7 @@ class MainViewController: NSViewController {
     // reset machine state
     @IBAction func resetSimulatorPressedWithSender(_ sender: AnyObject) {
         DispatchQueue.main.async {
+            self.simulator.stopRunning() // required because it's running in a dispatch queue, so it'll keep execuing unless I kill it directly -- ARC doesn't do this for me
             self.simulator = Simulator()
             self.consoleVC?.resetConsole()
             self.viewDidLoad()
@@ -658,14 +659,7 @@ extension MainViewController: NSTextFieldDelegate {
             }
             else if control === registersUI?.cc {
                 if let parsedCCType = self.scanCCStringToCCType(fieldEditor.string) {
-                    switch parsedCCType {
-                    case .N:
-                        self.simulator.registers.N = true
-                    case .Z:
-                        self.simulator.registers.Z = true
-                    case .P:
-                        self.simulator.registers.P = true
-                    }
+                    self.simulator.registers.cc = parsedCCType
                 }
             }
             // TODO: deal w/ IR, and PSR
