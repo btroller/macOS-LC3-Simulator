@@ -1770,7 +1770,9 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="base10NumberFormatter" destination="1js-rP-sqW" id="QZH-kJ-LzE"/>
                         <outlet property="binaryNumberFormatter" destination="YBz-0E-t09" id="Oet-Ca-8N8"/>
+                        <outlet property="ccFormatter" destination="O7v-hj-ILd" id="5Vs-Uw-XwH"/>
                         <outlet property="ccTextField" destination="QiK-pz-qB9" id="gjL-rV-Gp3"/>
                         <outlet property="hexNumberFormatter" destination="fjC-je-k7S" id="VDe-Fe-45Y"/>
                         <outlet property="irDecimalTextField" destination="0f0-6W-ZCz" id="bUx-fW-fCk"/>
@@ -1806,7 +1808,7 @@
                     <real key="minimum" value="0.0"/>
                     <real key="maximum" value="65535"/>
                 </numberFormatter>
-                <numberFormatter formatterBehavior="default10_4" usesGroupingSeparator="NO" groupingSize="0" minimumIntegerDigits="0" maximumIntegerDigits="42" id="O7v-hj-ILd" customClass="CCFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
+                <numberFormatter formatterBehavior="default10_4" usesGroupingSeparator="NO" groupingSize="0" minimumIntegerDigits="0" maximumIntegerDigits="42" id="O7v-hj-ILd" userLabel="CC Formatter" customClass="CCFormatter" customModule="LC3_Simulator" customModuleProvider="target"/>
             </objects>
             <point key="canvasLocation" x="175" y="1016.5"/>
         </scene>

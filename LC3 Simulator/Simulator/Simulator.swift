@@ -19,6 +19,7 @@ import Cocoa
 
 // when character is read, immediately output it to screen, then set kbsr to appropriate value (if more in buffer, still 1, otherwise 0)
 // TODO: use IR?
+// try setting initial SSP to x3000 so it subtracts from 3000
 
 //prefs : follow PC, allow invalid ops? maybe hold off on invalid ops for initial release
 // if implement jump to label, only exact match on label?
@@ -49,11 +50,9 @@ class Simulator {
         private var actualModifedMemoryLocations: IndexSet = []
 
         var indexes: IndexSet {
-            get {
-                let toReturn = actualModifedMemoryLocations
-                actualModifedMemoryLocations = []
-                return toReturn
-            }
+            let toReturn = actualModifedMemoryLocations
+            actualModifedMemoryLocations = []
+            return toReturn
         }
 
         func insert(_ element: Int) {
@@ -81,37 +80,65 @@ class Simulator {
         case illegalOpcode = 0x01
     }
 
+    func loadR6WithSSPIfNotAlreadyThere() {
+        let oldPrivilegeMode = registers.privilegeMode
+        
+        // 3: Load R6 with SSP if not already there
+        if oldPrivilegeMode == .User {
+            registers.savedUSP = registers.r[6]
+            registers.r[6] = registers.savedSSP
+        }
+    }
+    
     func executeException(ofType exceptionType: ExceptionType) {
+        
+        let oldPC = registers.pc
+        let oldPSR = registers.psr
+        
+        // 2
+        loadR6WithSSPIfNotAlreadyThere()
+        
         // 1: set privilege mode to supervisor
         registers.privilegeMode = .Supervisor
-        // TODO 2: R6 is loaded with the Supervisor Stack Pointer if it does not already contain it
+        
         // TODO 3: The PSR and PC of the interrupted process are pushed onto the Supervisor Stack.
+        registers.r[6] &-= 1
+        memory.setValue(at: registers.r[6], to: oldPSR, then: modifiedMemoryLocationsTracker.insert)
+        registers.r[6] &-= 1
+        memory.setValue(at: registers.r[6], to: oldPC &- 1, then: modifiedMemoryLocationsTracker.insert(_:))
+        
         // 4: The exception supplies its 8-bit vector. In the case of the Privilege mode violation, that vector is xOO. In the case of the illegal opcode, that vector is xOl.
         let vector = exceptionType.rawValue
         // 5: The processor expands that vector to xOlOO or xOlOl, the corresponding 16-bit address in the interrupt vector table
-        let expandedVector = vector + 0x0100
+        let expandedVector = vector &+ 0x0100
         // 6: The PC is loaded with the contents of memory location xOlOO or xOlOl, the address of the first instruction in the corresponding exception service routine.
-        registers.pc = memory[expandedVector].value
-
-        preconditionFailure("TODO: implement exceptions")
+        registers.pc = memory.getValue(at: expandedVector)
     }
 
-    // ONLY FOR KEYBOARD
+    // NOTE: ONLY FOR KEYBOARD INTERRUPTS (but there are no others)
+    // NOTE: not implemented exactly the way the book describes it, because the book doesn't do it in a sane way (as best I can tell). I update the stack pointer if necessary to point to the supervisor stack, store the PC and PSR, update the PSR to reflect that we're in supervisor mode and update the priority of the PSR, and finally jump to the service routine. Comment numbering appears as I copied it from the book, not in the order I choose to execute it.
     func executeInterrupt() {
+        loadR6WithSSPIfNotAlreadyThere()
+        
+        // TODO 4: push PSR and PC of interrupted process onto supervisor stack
+        registers.r[6] &-= 1
+        memory.setValue(at: registers.r[6], to: registers.psr, then: modifiedMemoryLocationsTracker.insert)
+        registers.r[6] &-= 1
+        memory.setValue(at: registers.r[6], to: registers.pc &- 1, then: modifiedMemoryLocationsTracker.insert(_:))
+        
         // 1: set privilege mode to supervisor
         registers.privilegeMode = .Supervisor
         // 2: set priority level to PL4 (priority of keyboard)
         registers.priorityLevel = kKeyboardPriorityLevel
-        // TODO 3: Load R6 with SSP if not already there
-        // TODO 4: push PSR and PC of interrupted process onto supervisor stack
+        
         // 5: keyboard supplies its 8-bit interrupt vector
         let interruptVector: UInt16 = 0x80
         // 6: processor expands vector
-        let expandedInterruptVector = interruptVector + 0x100
+        let expandedInterruptVector = interruptVector &+ 0x100
         // 7: load PC with contents of memory at 0x180
         registers.pc = memory.getValue(at: expandedInterruptVector)
 
-        preconditionFailure("TODO: implement interrupts")
+//        preconditionFailure("TODO: implement interrupts")
     }
 
     // TODO: make parameter nil?
@@ -122,6 +149,12 @@ class Simulator {
         let entryToExecute = nextInstructionEntry
         let value = entryToExecute.value
         registers.pc += 1
+        
+        // TODO: check if interrupt to be dealt with
+        if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
+            executeInterrupt()
+            return
+        }
 
 //        print(value.instructionType)
 //        print(value)
@@ -168,14 +201,18 @@ class Simulator {
         case .RET:
             registers.pc = registers[7]
         case .RTI:
-            if (registers.psr.getBit(at: 15) == 0) {
+            // starts with state 8 in the diagram
+            if registers.psr.getBit(at: 15) == 0 {
                 registers.pc = memory.getValue(at: registers.r[6])
                 registers.r[6] &+= 1
-                let temp = memory.getValue(at: registers.r[6])
+                registers.psr = memory.getValue(at: registers.r[6])
                 registers.r[6] &+= 1
-                registers.psr = temp
+                if registers.psr.getBit(at: 15) == 1 {
+                    registers.savedSSP = registers.r[6]
+                    registers.r[6] = registers.savedUSP
+                }
             } else {
-                // initiate privalege mode exception
+                // initiate privalege mode exception - shouldn't execute RTI outside of supervisor mode b/c the superisor stack isn't set up and won't be popped from correctly, messing up the PC and PSR
                 executeException(ofType: .privilegeModeViolation)
             }
         case .ST:
@@ -211,27 +248,29 @@ class Simulator {
             memory[Memory.DSR].value.setBit(at: 15, to: 1)
         }
 
-        // TODO: check if interrupt to be dealt with
-        if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
-            executeInterrupt()
-        }
     }
 
     // run until have returned to same level as started at?
     func stepOver() {
+        _isRunning = true
 //        while ()
         preconditionFailure()
+        _isRunning = false
     }
 
     // run until have
     func stepIn(finallyUpdateIndexes: (IndexSet) -> Void) {
+        _isRunning = true
         executeNextInstruction()
 
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
+        _isRunning = false
     }
 
     func stepOut() {
+        _isRunning = true
         preconditionFailure()
+        _isRunning = false
     }
 
     func runForever(finallyUpdateIndexes: (IndexSet) -> Void) {

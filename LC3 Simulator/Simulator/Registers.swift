@@ -37,7 +37,7 @@ class Registers {
 //    }
 
     var ir: UInt16 = 0x0000
-    var psr: UInt16 = 0x0002 // set CC to N = 0, Z = 1, P = 0
+    var psr: UInt16 = 0x8002 // set CC to N = 0, Z = 1, P = 0 and privilege mode to user
     
     enum CCType: String {
         case N = "N"
@@ -104,7 +104,7 @@ class Registers {
     }
     var r: [UInt16] = [UInt16].init(repeating: 0, count: 8)
     // see book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
-    var savedSSP: UInt16 = 0x0300
+    var savedSSP: UInt16 = 0x2FFF // at 0x2FFF and not 0x3000 b/c the label for SS_START will now appear outside of user memory. Possibly a bit confusing, though.
     var savedUSP: UInt16 = 0
 
     var mainVC: MainViewController?

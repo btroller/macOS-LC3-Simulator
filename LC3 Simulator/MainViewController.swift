@@ -6,10 +6,11 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-// Today: register UI, use IR?, interrupts/exceptions
+// Today: use IR?
 
-// TODO: decide register UI
-// TODO:   disable editing of registers while running continuously
+// TODO: find any leaks -- Instruments fails to check for leaks when I start to open files
+// TODO: make multiple input files selectable at once
+// TODO: make registers uneditable while simulator is running
 // TODO: add "Reset" option to Simulator menu to reload all files loaded previously (and assemble all assembly files)
 // TODO: add list of previously-searched-for addresses
 // TODO: add count of how many characters are buffered and button to clear buffered characters in Console window
@@ -17,15 +18,18 @@
 // TODO: use notifications and callbacks to talk between model and controller classes (as opposed to keeping references to controller classes around)
 // TODO: have fancier instruction string descriptions? maybe include ascii representation or numerical representation of what's there, too (possibly in separate columns)
 // TODO: remove watching for and handlers for unused Notifications
-// TODO: thoroughly test of Simulator
-// TODO: try using IB to connect and have identifiers done w/ bindings
+// TODO: thoroughly test Simulator
 
+// MAYBE: have preference for showing 'NOP' vs 'BR #0'
+// MAYBE: allow setting of memory to default values - ex. allows you to set 0x180 to point to the address of your intterupt. Approaches what Bellardo suggested in the way of creating memory snapshots which can be loaded, like custom OSs
 // MAYBE: allow editing of labels?
+// MAYBE: stop any editing sessions in the memory table view or registers when the simulator starts up - could send Notification from Simulator to main VC
 // MAYBE: maybe have different formatting in search bar to indicate it's a hex search
 // MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
 // MABYE: allow scaling of simulator horizontally, scaling only the label column (or allowing to change size of label/instruciton columns to accomidate longer instructions or labels)
 // MAYBE: add "Set PC" option in context menu - I'm starting to think this is less useful as time goes on
 // MAYBE: set selection indicator color to grey when simulator is running
+// MAYBE: make preference for having keyboard interrupts enabled by default
 
 // EVENTUALLY: disable ⌘F shortuct when the address search bar isn't in view. This doesn't currenlty break anything, but I'd guess it's misleading. Maybe make the search bar permanent somehow
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
@@ -76,8 +80,11 @@ class MainViewController: NSViewController {
     // MARK: IB outlets
     @IBOutlet var hexNumberFormatter: HexNumberFormatter!
     @IBOutlet var binaryNumberFormatter: BinaryNumberFormatter!
+    @IBOutlet var base10NumberFormatter: Base10NumberFormatter!
+    @IBOutlet var ccFormatter: CCFormatter!
+    // memory UI
     @IBOutlet weak var memoryTableView: NSTableView!
-    // specifically, for registers UI
+    // registers UI
     @IBOutlet weak var r0HexTextField: NSTextField!
     @IBOutlet weak var r0DecimalTextField: NSTextField!
     @IBOutlet weak var r1HexTextField: NSTextField!
@@ -148,14 +155,6 @@ class MainViewController: NSViewController {
             self.registersUI?.psr.decimalTextField.intValue = Int32(self.simulator.registers.psr)
             
             let ccString = self.simulator.registers.cc.rawValue
-//            switch self.simulator.registers.cc {
-//            case .N:
-//                ccString = "N"
-//            case .Z:
-//                ccString = "Z"
-//            case .P:
-//                ccString = "P"
-//            }
             self.registersUI?.cc.stringValue = ccString
         }
     }
@@ -212,7 +211,8 @@ class MainViewController: NSViewController {
             let pcAsInt = Int(self.simulator.registers.pc)
             self.memoryTableView.scrollToMakeRowVisibleWithSpacing(pcAsInt)
             // selects row of PC for consistency with searching for address
-            self.memoryTableView.selectRowIndexes([pcAsInt], byExtendingSelection: false)
+            // I don't really like this behavior, so I've commented it out for now and will deal with it later
+//            self.memoryTableView.selectRowIndexes([pcAsInt], byExtendingSelection: false)
         }
     }
 
@@ -273,10 +273,9 @@ class MainViewController: NSViewController {
 extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     // TODO: rename to something better
-    // NOTE: relies on static ordering of columns
     // TODO: abstact away from specific column like done in other cases (onItemDoubleClicked) - replace 0
     @IBAction func onItemClicked(_ sender: AnyObject) {
-        print("row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn) clicked")
+//        print("row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn) clicked")
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
 
         if memoryTableView.clickedColumn == breakpointColumnIndex && memoryTableView.clickedRow >= 0 {
@@ -288,10 +287,9 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     // TODO: rename to something better
     // NOTE: might also trigger for registers table view for now
-    // NOTE: relies on static ordering of columns
     @IBAction func onItemDoubleClicked(_ sender: AnyObject) {
         guard memoryTableView.clickedRow >= 0 else { return }
-        print("double clicked on row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn)")
+//        print("double clicked on row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn)")
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
         let binaryValueColumnIndex = memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
         let hexValueColumnIndex = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
@@ -518,35 +516,26 @@ extension MainViewController: NSOpenSavePanelDelegate {
 // TODO: put scanning functions inside of control()
 extension MainViewController: NSTextFieldDelegate {
 
-    func scanBinaryStringToUInt16(_ string: String) -> UInt16? {
+    @inline(__always)func scanStringToUInt16WithFormatter(string: String, formatter: Formatter) -> UInt16? {
         var obj: AnyObject = 0 as AnyObject
         let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        if binaryNumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
-            return obj as? UInt16
-        } else {
-            return nil
-        }
-    }
-
-    func scanHexStringToUInt16(_ string: String) -> UInt16? {
-        var obj: AnyObject = 0 as AnyObject
-        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        if hexNumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
+        if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
             return obj as? UInt16
         } else {
             return nil
         }
     }
     
+    func scanBinaryStringToUInt16(_ string: String) -> UInt16? {
+        return scanStringToUInt16WithFormatter(string: string, formatter: binaryNumberFormatter)
+    }
+
+    func scanHexStringToUInt16(_ string: String) -> UInt16? {
+        return scanStringToUInt16WithFormatter(string: string, formatter: hexNumberFormatter)
+    }
+    
     func scanBase10StringToUInt16(_ string: String) -> UInt16? {
-        var obj: AnyObject = 0 as AnyObject
-        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-        let base10NumberFormatter = Base10NumberFormatter() // TODO: use IBOutlet to reference existing Base10NumberFormatter in storyboard
-        if base10NumberFormatter.getObjectValue(pointer, for: string, errorDescription: nil) {
-            return obj as? UInt16
-        } else {
-            return nil
-        }
+        return scanStringToUInt16WithFormatter(string: string, formatter: base10NumberFormatter)
     }
     
     // TODO: figure out why CCFormatter was causing errors when run previously. The return value seemed fine -- I think the autoreleasing pointer junk is what killed it
@@ -561,38 +550,23 @@ extension MainViewController: NSTextFieldDelegate {
         default:
             return nil
         }
-//        var obj: AnyObject = 0 as AnyObject
-//        let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
-//        let ccFormatter = CCFormatter() // TODO: use IBOutlet to reference existing Base10NumberFormatter in storyboard
-//        if ccFormatter.getObjectValue(pointer, for: string, errorDescription: nil), let ccType = obj as? Registers.CCType {
-//            switch ccType {
-//            case .N:
-//                return .N
-//            case .Z:
-//                return .Z
-//            case .P:
-//                return .P
-//            }
-//
-////            return obj as? Registers.CCType
-//        } else {
-//            return nil
-//        }
     }
 
+    func updateMemoryTableView(control: NSControl, fieldEditor: NSText, scanner: (String) -> UInt16?) {
+        if let parsedString = scanner(fieldEditor.string) {
+            DispatchQueue.main.async {
+                self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
+                self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
+            }
+            if let controlAsTextField = control as? NSTextField {
+                controlAsTextField.isEditable = false
+            }
+        }
+    }
+    
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
-
-//        // always make the text field non-editable again after finished editing
-//        defer {
-//            // set isEditable to false if it's a text box from the table view
-//            let memoryTableViewTextFieldIdentifiers: Set = [kValueHexTextFieldIdentifier, kValueBinaryTextFieldIdentifier]
-//            if let controlIdentifier = control.identifier, memoryTableViewTextFieldIdentifiers.contains(controlIdentifier), let controlAsTextField = control as? NSTextField {
-//                    controlAsTextField.isEditable = false
-//            }
-//        }
-
         // don't allow edit to go through if simulator is running
         guard !simulator.isRunning else {
             control.abortEditing()
@@ -602,25 +576,9 @@ extension MainViewController: NSTextFieldDelegate {
         // put new value into memory, then reload table view
         switch control.identifier {
         case self.kValueHexTextFieldIdentifier:
-            if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
-                DispatchQueue.main.async {
-                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
-                    self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
-                }
-                if let controlAsTextField = control as? NSTextField {
-                    controlAsTextField.isEditable = false
-                }
-            }
+            updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanHexStringToUInt16(_:))
         case self.kValueBinaryTextFieldIdentifier:
-            if let parsedString = self.scanBinaryStringToUInt16(fieldEditor.string) {
-                DispatchQueue.main.async {
-                    self.memory?[UInt16(self.rowBeingEdited!)].value = parsedString
-                    self.memoryTableView.reloadModifedRows([self.rowBeingEdited!])
-                }
-                if let controlAsTextField = control as? NSTextField {
-                    controlAsTextField.isEditable = false
-                }
-            }
+            updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanBinaryStringToUInt16(_:))
         default:
             // a text field from the registers
             if let decimalRegNum = registersUI?.regs.firstIndex(where: { $0.decimalTextField === control }) {
@@ -658,8 +616,8 @@ extension MainViewController: NSTextFieldDelegate {
                 }
             }
             else if control === registersUI?.cc {
-                if let parsedCCType = self.scanCCStringToCCType(fieldEditor.string) {
-                    self.simulator.registers.cc = parsedCCType
+                if let parsedCC = self.scanCCStringToCCType(fieldEditor.string) {
+                    self.simulator.registers.cc = parsedCC
                 }
             }
             // TODO: deal w/ IR, and PSR
@@ -669,8 +627,6 @@ extension MainViewController: NSTextFieldDelegate {
 //                let regNum = registersUI.regs.index(where: { $0.decimalTextField === control || $0.hexTextField === control })
 //            }
             reloadRegisterUI()
-//            return true
-//            preconditionFailure("Failed to match identifier of control in control()")
         }
 
         return true
@@ -715,8 +671,6 @@ extension NSTableView {
     var allColumnIndexes: IndexSet {
         return IndexSet(integersIn: self.tableColumns.indices)
     }
-
-    // NOTE: createNSTableCellViewWithStringIdentifier() is implemented as 2 separate functions for (hopeful) speed's sake, but could (and was previously) implemented as a single function with nil as default value for stringValue and imageValue
 
     @inline(__always) func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, stringValue: String) -> NSTableCellView {
         let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
@@ -857,17 +811,3 @@ extension NSApplication {
 //
 //}
 
-// TODO: remove
-//extension NSTableView {
-//
-//    open override func keyDown(with event: NSEvent) {
-//        print(event)
-//        super.keyDown(with: event)
-//    }
-//    
-//    open override func keyUp(with event: NSEvent) {
-//        print(event)
-//        super.keyUp(with: event)
-//    }
-//
-//}
