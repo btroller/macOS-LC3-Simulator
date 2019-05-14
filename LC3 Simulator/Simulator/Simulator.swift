@@ -71,7 +71,7 @@ class Simulator {
     }
 
     // UNSURE: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
-    var nextInstructionEntry: Memory.Entry {
+    var currentInstructionEntry: Memory.Entry {
         return memory[registers.pc]
     }
 
@@ -90,7 +90,7 @@ class Simulator {
         }
     }
     
-    func executeException(ofType exceptionType: ExceptionType) {
+    func initiateException(withType exceptionType: ExceptionType) {
         
         let oldPC = registers.pc
         let oldPSR = registers.psr
@@ -117,7 +117,7 @@ class Simulator {
 
     // NOTE: ONLY FOR KEYBOARD INTERRUPTS (but there are no others)
     // NOTE: not implemented exactly the way the book describes it, because the book doesn't do it in a sane way (as best I can tell). I update the stack pointer if necessary to point to the supervisor stack, store the PC and PSR, update the PSR to reflect that we're in supervisor mode and update the priority of the PSR, and finally jump to the service routine. Comment numbering appears as I copied it from the book, not in the order I choose to execute it.
-    func executeInterrupt() {
+    func initiateInterrupt() {
         loadR6WithSSPIfNotAlreadyThere()
         
         // TODO 4: push PSR and PC of interrupted process onto supervisor stack
@@ -137,8 +137,6 @@ class Simulator {
         let expandedInterruptVector = interruptVector &+ 0x100
         // 7: load PC with contents of memory at 0x180
         registers.pc = memory.getValue(at: expandedInterruptVector)
-
-//        preconditionFailure("TODO: implement interrupts")
     }
 
     // TODO: make parameter nil?
@@ -146,19 +144,20 @@ class Simulator {
         // execute instruction normally
         // TODO: figure out why removing this print() makes console responsiveness plummet
 //        print("executing at \(String.init(format: "0x%04X", registers.pc))")
-        let entryToExecute = nextInstructionEntry
-        let value = entryToExecute.value
+        let entryToExecute = currentInstructionEntry
+        registers.ir = entryToExecute.value
+        let value = registers.ir
         registers.pc += 1
         
-        // TODO: check if interrupt to be dealt with
+        // if interrupt to be dealt with, jump to appropriate stuff
         if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
-            executeInterrupt()
+            initiateInterrupt()
             return
         }
 
 //        print(value.instructionType)
 //        print(value)
-        switch (value.instructionType) {
+        switch (registers.ir.instructionType) {
         case .ADDR:
             registers[value.SR_DR] = registers[value.SR1] &+ registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
@@ -213,7 +212,7 @@ class Simulator {
                 }
             } else {
                 // initiate privalege mode exception - shouldn't execute RTI outside of supervisor mode b/c the superisor stack isn't set up and won't be popped from correctly, messing up the PC and PSR
-                executeException(ofType: .privilegeModeViolation)
+                initiateException(withType: .privilegeModeViolation)
             }
         case .ST:
             memory.setValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9), to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
@@ -228,7 +227,7 @@ class Simulator {
             registers.pc = memory.getValue(at: value.trapVect8)
         case .NOT_IMPLEMENTED:
             // trigger illegal opcode exception
-            executeException(ofType: .illegalOpcode)
+            initiateException(withType: .illegalOpcode)
 //        default:
 //            print("didn't match instruction type in Simulator")
         }
@@ -250,16 +249,41 @@ class Simulator {
 
     }
 
+    typealias IndexUpdateFunction = (IndexSet) -> Void
+    
     // run until have returned to same level as started at?
-    func stepOver() {
+    func stepOver(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
-//        while ()
-        preconditionFailure()
+        var levelsDeep = 0
+        var haveSteppedIn = false
+        
+        repeat {
+            executeNextInstruction()
+            switch registers.ir.instructionType {
+            case .TRAP:
+                haveSteppedIn = true
+                levelsDeep += 1
+            case .JSR:
+                haveSteppedIn = true
+                levelsDeep += 1
+            case .JSRR:
+                haveSteppedIn = true
+                levelsDeep += 1
+            case .RET:
+                levelsDeep -= 1
+            default:
+                break
+            }
+            print("new pc = \(registers.pc)")
+        } while (!currentInstructionEntry.shouldBreak && isRunning && (!haveSteppedIn || levelsDeep > 0));
+        print("done")
+        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
         _isRunning = false
     }
 
+    // TODO: maybe make this thing run until a step in actually happens
     // run until have
-    func stepIn(finallyUpdateIndexes: (IndexSet) -> Void) {
+    func stepIn(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
         executeNextInstruction()
 
@@ -267,17 +291,24 @@ class Simulator {
         _isRunning = false
     }
 
-    func stepOut() {
+    func stepOut(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
-        preconditionFailure()
+        var haveSteppedOut = false
+        
+        repeat {
+            executeNextInstruction()
+            haveSteppedOut = registers.ir.instructionType == .RET
+        } while (!haveSteppedOut);
+        
         _isRunning = false
+        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
     }
 
-    func runForever(finallyUpdateIndexes: (IndexSet) -> Void) {
+    func runForever(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
 
         executeNextInstruction()
-        while (!nextInstructionEntry.shouldBreak && isRunning) {
+        while (!currentInstructionEntry.shouldBreak && isRunning) {
             executeNextInstruction()
         }
 

@@ -6,8 +6,9 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-// Today: use IR?
+// Today: use IR?, set up IR and PSR UI
 
+// TODO: include clock nonsense so execution stops when bit is set
 // TODO: find any leaks -- Instruments fails to check for leaks when I start to open files
 // TODO: make multiple input files selectable at once
 // TODO: make registers uneditable while simulator is running
@@ -191,12 +192,21 @@ class MainViewController: NSViewController {
 
     @IBAction func stepOutClickedWithSender(_ sender: AnyObject) {
         print("step out clicked")
-        preconditionFailure("not implemented yet")
+        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+        backgroundQueue.async {
+            self.simulator.stepOut(finallyUpdateIndexes: self.updateUIAfterSimulatorRun(modifiedRows:))
+        }
+        NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
 
     @IBAction func stepOverClickedWithSender(_ sender: AnyObject) {
         print("step over clicked")
-        preconditionFailure("not implemented yet")
+//        preconditionFailure("not implemented yet")
+        memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
+        backgroundQueue.async {
+            self.simulator.stepOver(finallyUpdateIndexes: self.updateUIAfterSimulatorRun(modifiedRows:))
+        }
+        NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
 
     @IBAction func stopClickedWithSender(_ sender: AnyObject) {
