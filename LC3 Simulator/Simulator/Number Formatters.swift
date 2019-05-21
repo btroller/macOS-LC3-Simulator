@@ -18,9 +18,8 @@ class BinaryNumberFormatter: Formatter {
         guard let inUInt16 = obj as? UInt16 else {
             return nil
         }
-
-        let unformattedBinaryString = String(inUInt16, radix: 2)
-        var formattedBinaryString = String(repeating: "0", count: 16 - unformattedBinaryString.count) + unformattedBinaryString
+        
+        var formattedBinaryString = String(inUInt16, radix: 2, paddedTo: UInt16.bitWidth)
         formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 12, in: formattedBinaryString))
         formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 8, in: formattedBinaryString))
         formattedBinaryString.insert(" ", at: String.Index(utf16Offset: 4, in: formattedBinaryString))
@@ -48,7 +47,7 @@ class BinaryNumberFormatter: Formatter {
             return nil
         }
 
-        return String(inUInt16, radix: 2)
+        return String(inUInt16, radix: 2, paddedTo: UInt16.bitWidth)
     }
 
     override func isPartialStringValid(_ partialStringPtr: AutoreleasingUnsafeMutablePointer<NSString>, proposedSelectedRange proposedSelRangePtr: NSRangePointer?, originalString origString: String, originalSelectedRange origSelRange: NSRange, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
@@ -298,6 +297,17 @@ class CCFormatter: Formatter {
         let allowedCharacters : CharacterSet = ["N", "Z", "P"]
         
         return /* partialString.count > 0 && */ partialStringPtr.pointee.length <= 1 && allowedCharacters.isSuperset(of: CharacterSet(charactersIn: partialStringPtr.pointee.uppercased))
+    }
+    
+}
+
+extension String {
+    
+    init(_ val: UInt16, radix: Int, paddedTo totalLen: Int) {
+        let tempVal = String(val, radix: radix)
+        let pad = String(repeating: "0", count: totalLen - tempVal.count)
+        self = pad + tempVal
+        assert(self.count == totalLen)
     }
     
 }

@@ -13,12 +13,41 @@ import Cocoa
 class ConsoleViewController: NSViewController {
 
     @IBOutlet private var textView: NSTextView!
+    @IBOutlet weak var consoleInputQueueCountLabel: NSTextField!
 
-    var queue = ConsoleInputQueue<Character>()
-
+    @IBAction func clearConsoleDisplayClicked(with sender: AnyObject) {
+        self.textView.string = ""
+    }
+    
+    @IBAction func clearConsoleInputBufferClicked(with sender: AnyObject) {
+        self.queue = ConsoleInputQueue<Character>()
+        updateInputQueueCountLabel()
+    }
+    
+    var queueHasNext : Bool {
+        return queue.hasNext
+    }
+    
+    func popFromQueue() -> Character? {
+        let ret = queue.pop()
+//        updateInputQueueCountLabel()
+        return ret
+    }
+    
+    // TODO: make all pops decreate the no. of characters registered in the queue according to string
+    private var queue = ConsoleInputQueue<Character>()
+    
     func resetConsole() {
         queue = ConsoleInputQueue<Character>()
         textView.string = ""
+        updateInputQueueCountLabel()
+    }
+    
+    func updateInputQueueCountLabel() {
+        let newString = "\(queue.count) buffered characters"
+        DispatchQueue.main.async {
+            self.consoleInputQueueCountLabel.stringValue = newString
+        }
     }
 
     // EVENTUALLY: remove the unused log() function
@@ -43,7 +72,15 @@ class ConsoleViewController: NSViewController {
 
     // called when Memory wants another character from the console
     @objc private func receiveRequestForNextConcoleCharacter(_ notification: Notification) {
-        NotificationCenter.default.post(name: Memory.kReceiveNextConsoleCharacter, object: queue.pop())
+//        NotificationCenter.default.post(name: Memory.kReceiveNextConsoleCharacter, object: queue.pop())
+        updateInputQueueCountLabel()
+    }
+    
+    static let kConsoleInputQueueCountChanged = Notification.Name.init("consoleInputQueueCountChanged")
+    
+    // called when Memory wants another character from the console
+    @objc private func consoleInputQueueCountChanged(_ notification: Notification) {
+        updateInputQueueCountLabel()
     }
 
     override func viewDidLoad() {
@@ -77,6 +114,9 @@ class ConsoleViewController: NSViewController {
 
         NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: Memory.kLogCharacterMessageName, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(receiveRequestForNextConcoleCharacter), name: Memory.kRequestNextConsoleCharacter, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(receiveRequestForNextConcoleCharacter(_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
+        
+        self.updateInputQueueCountLabel()
     }
 
 }
@@ -90,6 +130,7 @@ extension ConsoleViewController: NSTextViewDelegate {
         replacementString?.forEach({ (char) in
             if (char.isASCII) {
                 queue.push(char)
+//                updateInputQueueCountLabel()
             }
         })
 

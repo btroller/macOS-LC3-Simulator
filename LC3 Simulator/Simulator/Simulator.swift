@@ -38,7 +38,11 @@ class Simulator {
     var consoleVC: ConsoleViewController {
         return mainVC.consoleVC!
     }
-    private var _isRunning: Bool = false
+    private var _isRunning: Bool = false {
+        didSet {
+            NotificationCenter.default.post(name: MainViewController.kSimulatorChangedRunStatus, object: nil, userInfo: nil)
+        }
+    }
     var isRunning: Bool {
         return _isRunning
     }
@@ -236,9 +240,9 @@ class Simulator {
 //        print("registers: \(registers.r)")
 
         // Update I/O stuff
-        if (consoleVC.queue.hasNext && !memory.KBSRIsSet) {
+        if (consoleVC.queueHasNext && !memory.KBSRIsSet) {
             //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
-            memory[Memory.KBDR].value = consoleVC.queue.pop()!.toUInt16ASCII
+            memory[Memory.KBDR].value = consoleVC.popFromQueue()!.toUInt16ASCII
             memory[Memory.KBSR].value.setBit(at: 15, to: 1)
         }
         if (!memory.DSRIsSet) {

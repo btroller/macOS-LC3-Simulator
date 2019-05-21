@@ -133,11 +133,6 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="Wah-N1-aHD"/>
-                                        <menuItem title="Scroll to PC" keyEquivalent="j" id="1v1-eV-oFK">
-                                            <connections>
-                                                <action selector="scrollToPCClickedWithSender:" target="Ady-hI-5gd" id="jmy-bQ-H7j"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Reset Simulator" keyEquivalent="n" id="5La-fn-NWv">
                                             <connections>
                                                 <action selector="resetSimulatorPressedWithSender:" target="Ady-hI-5gd" id="WaU-jq-7Cs"/>
@@ -149,9 +144,27 @@
                                                 <action selector="setPCPressedWithSender:" target="Ady-hI-5gd" id="OeC-hF-ND8"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Scroll to PC" keyEquivalent="j" id="1v1-eV-oFK">
+                                            <connections>
+                                                <action selector="scrollToPCClickedWithSender:" target="Ady-hI-5gd" id="jmy-bQ-H7j"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Toggle Breakpoint at Selected Row" keyEquivalent="b" identifier="toggleBreakpointMenuItemID" id="gnE-FL-Ldg">
                                             <connections>
                                                 <action selector="toggleBreakpointClickedWithSender:" target="Ady-hI-5gd" id="vfg-gE-4tU"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="HQx-u5-BDd"/>
+                                        <menuItem title="Clear Console Display" id="iZA-zH-Jpo">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="clearConsoleDisplayClickedWith:" target="Ady-hI-5gd" id="YoD-ue-LQY"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Clear Console Input Buffer" id="8ab-X6-N08">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="clearConsoleInputBufferClickedWith:" target="Ady-hI-5gd" id="MkY-Sj-G0c"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -809,12 +822,12 @@
                                         <action selector="stepOverClickedWithSender:" target="Oky-zY-oP4" id="KSl-Vu-y0u"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="6D98315A-5711-4FF7-B702-886BACAFFC68" explicitItemIdentifier="toggleBreakpointToolbarItemID" label="Toggle Breakpoint" paletteLabel="Toggle Breakpoint" image="SetBreakpointIcon" id="7VO-Vx-c1j" userLabel="Toggle Breakpoint" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="6D98315A-5711-4FF7-B702-886BACAFFC68" explicitItemIdentifier="toggleBreakpointToolbarItemID" label="Set Breakpoint" paletteLabel="Set Breakpoint" image="SetBreakpointIcon" id="7VO-Vx-c1j" userLabel="Toggle Breakpoint" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
-                                    <button key="view" verticalHuggingPriority="750" id="lYd-wJ-6vA">
-                                        <rect key="frame" x="33" y="14" width="37" height="27"/>
+                                    <button key="view" verticalHuggingPriority="750" misplaced="YES" id="lYd-wJ-6vA">
+                                        <rect key="frame" x="24" y="14" width="37" height="27"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="SetBreakpointIcon" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rA6-eI-npm">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -896,6 +909,8 @@
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="294" y="313" width="480" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1057"/>
+                        <value key="minSize" type="size" width="350" height="170"/>
+                        <contentBorderThickness minY="22"/>
                         <connections>
                             <outlet property="delegate" destination="daa-SV-Vhn" id="LtE-hx-SSQ"/>
                         </connections>
@@ -912,23 +927,23 @@
         <scene sceneID="90G-VO-2G7">
             <objects>
                 <viewController storyboardIdentifier="consoleViewControllerID" showSeguePresentationStyle="single" id="2TL-5B-Fad" customClass="ConsoleViewController" customModule="LC3_Simulator" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="T5Y-tf-KQe">
-                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                    <view key="view" wantsLayer="YES" id="T5Y-tf-KQe">
+                        <rect key="frame" x="0.0" y="0.0" width="610" height="279"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k5L-aP-HMJ">
-                                <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                            <scrollView misplaced="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k5L-aP-HMJ">
+                                <rect key="frame" x="0.0" y="20" width="610" height="259"/>
                                 <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="s32-K0-H1C">
-                                    <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="610" height="259"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView importsGraphics="NO" richText="NO" verticallyResizable="YES" usesFontPanel="YES" spellingCorrection="YES" smartInsertDelete="YES" id="Ek5-iT-zNA">
-                                            <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                                        <textView importsGraphics="NO" richText="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" textCompletion="NO" id="Ek5-iT-zNA">
+                                            <rect key="frame" x="0.0" y="0.0" width="580" height="259"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            <size key="minSize" width="480" height="270"/>
-                                            <size key="maxSize" width="480" height="10000000"/>
+                                            <size key="minSize" width="580" height="259"/>
+                                            <size key="maxSize" width="610" height="10000000"/>
                                             <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                             <connections>
                                                 <outlet property="delegate" destination="2TL-5B-Fad" id="sQi-zj-DyN"/>
@@ -941,25 +956,36 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="RE0-jx-XHK">
-                                    <rect key="frame" x="464" y="0.0" width="16" height="270"/>
+                                    <rect key="frame" x="594" y="0.0" width="16" height="259"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PRt-5I-eEE">
+                                <rect key="frame" x="227" y="3" width="157" height="17"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Console Character Count" id="og0-ph-UcC">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="width" secondItem="T5Y-tf-KQe" secondAttribute="width" id="51p-A5-Fg0"/>
-                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="centerY" secondItem="T5Y-tf-KQe" secondAttribute="centerY" id="Twx-md-Gyo"/>
-                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="height" secondItem="T5Y-tf-KQe" secondAttribute="height" id="gTS-PS-uU0"/>
-                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="centerX" secondItem="T5Y-tf-KQe" secondAttribute="centerX" id="xrJ-fS-AZ9"/>
+                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="width" secondItem="T5Y-tf-KQe" secondAttribute="width" id="Gb4-g0-iIq"/>
+                            <constraint firstAttribute="bottom" secondItem="k5L-aP-HMJ" secondAttribute="bottom" constant="22" id="RGp-zU-3Ho"/>
+                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="top" secondItem="T5Y-tf-KQe" secondAttribute="top" id="UaU-kZ-hxv"/>
+                            <constraint firstItem="k5L-aP-HMJ" firstAttribute="centerX" secondItem="T5Y-tf-KQe" secondAttribute="centerX" id="cVC-Ev-JcN"/>
+                            <constraint firstItem="PRt-5I-eEE" firstAttribute="centerX" secondItem="T5Y-tf-KQe" secondAttribute="centerX" id="qaN-Ge-g0G"/>
+                            <constraint firstAttribute="bottom" secondItem="PRt-5I-eEE" secondAttribute="bottom" constant="3" id="qj9-Sk-Job"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="consoleInputQueueCountLabel" destination="PRt-5I-eEE" id="Ppc-Y3-aUr"/>
                         <outlet property="textView" destination="Ek5-iT-zNA" id="CaF-0S-jtq"/>
                     </connections>
                 </viewController>
                 <customObject id="tVW-sI-BnT" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="920" y="731"/>
+            <point key="canvasLocation" x="942" y="804.5"/>
         </scene>
         <!--Main View Controller-->
         <scene sceneID="hIz-AP-VOD">
@@ -1212,6 +1238,7 @@
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                     <connections>
+                                                        <outlet property="delegate" destination="XfG-lQ-9wD" id="t8x-19-9Oz"/>
                                                         <outlet property="formatter" destination="fjC-je-k7S" id="xoh-OA-1zs"/>
                                                     </connections>
                                                 </textField>
@@ -1225,6 +1252,7 @@
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                     <connections>
+                                                        <outlet property="delegate" destination="XfG-lQ-9wD" id="jyi-Kk-qXG"/>
                                                         <outlet property="formatter" destination="1js-rP-sqW" id="6tv-QZ-UOO"/>
                                                     </connections>
                                                 </textField>
@@ -1339,6 +1367,7 @@
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                     <connections>
+                                                        <outlet property="delegate" destination="XfG-lQ-9wD" id="VcT-OV-wom"/>
                                                         <outlet property="formatter" destination="fjC-je-k7S" id="JPC-4s-eIT"/>
                                                     </connections>
                                                 </textField>
@@ -1352,6 +1381,7 @@
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                     <connections>
+                                                        <outlet property="delegate" destination="XfG-lQ-9wD" id="bkc-5U-27d"/>
                                                         <outlet property="formatter" destination="1js-rP-sqW" id="cdh-8y-otl"/>
                                                     </connections>
                                                 </textField>
