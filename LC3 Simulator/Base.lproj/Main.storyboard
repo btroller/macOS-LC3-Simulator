@@ -732,10 +732,10 @@
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenNone="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="196" y="240" width="602" height="270"/>
+                        <rect key="contentRect" x="196" y="240" width="648" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <value key="minSize" type="size" width="602" height="270"/>
-                        <toolbar key="toolbar" implicitIdentifier="CFF992F0-13D7-4502-8261-708EDD813C8E" displayMode="iconAndLabel" sizeMode="regular" id="X4T-wq-N9d">
+                        <value key="minSize" type="size" width="648" height="270"/>
+                        <toolbar key="toolbar" implicitIdentifier="CFF992F0-13D7-4502-8261-708EDD813C8E" allowsUserCustomization="NO" displayMode="iconAndLabel" sizeMode="regular" id="X4T-wq-N9d">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="50EC06AD-BCC2-4047-8437-FF888918DBD5" label="Scroll To Address (hex)" paletteLabel="Scroll To Address (hex)" visibilityPriority="9001" id="C3P-Br-Hk5" userLabel="View Address Search Bar">
                                     <nil key="toolTip"/>
@@ -826,7 +826,7 @@
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
-                                    <button key="view" verticalHuggingPriority="750" misplaced="YES" id="lYd-wJ-6vA">
+                                    <button key="view" verticalHuggingPriority="750" id="lYd-wJ-6vA">
                                         <rect key="frame" x="24" y="14" width="37" height="27"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="SetBreakpointIcon" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rA6-eI-npm">
@@ -854,14 +854,14 @@
                                         <action selector="stopClickedWithSender:" target="Oky-zY-oP4" id="bwK-Z3-kUv"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="7132E1BB-28FD-4AFD-8FBE-60D57F2EB54A" label="Scroll to PC" paletteLabel="Scroll to PC" image="NSActionTemplate" id="oPp-11-yrL" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="7132E1BB-28FD-4AFD-8FBE-60D57F2EB54A" label="Scroll to PC" paletteLabel="Scroll to PC" image="ScrollToPCIcon" id="oPp-11-yrL" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
                                     <button key="view" verticalHuggingPriority="750" id="zWd-lZ-Ecs">
                                         <rect key="frame" x="16" y="14" width="37" height="27"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSActionTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="SSE-xR-x7T">
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ScrollToPCIcon" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="SSE-xR-x7T">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
                                         </buttonCell>
@@ -874,12 +874,13 @@
                             <defaultToolbarItems>
                                 <toolbarItem reference="MtU-zi-Siu"/>
                                 <toolbarItem reference="STo-Yj-EQ1"/>
-                                <toolbarItem reference="RwZ-Va-z66"/>
+                                <toolbarItem reference="9GK-hj-Jwl"/>
                                 <toolbarItem reference="roI-g5-7g5"/>
                                 <toolbarItem reference="krH-gj-tct"/>
                                 <toolbarItem reference="hnN-GP-5bU"/>
-                                <toolbarItem reference="RwZ-Va-z66"/>
+                                <toolbarItem reference="9GK-hj-Jwl"/>
                                 <toolbarItem reference="7VO-Vx-c1j"/>
+                                <toolbarItem reference="oPp-11-yrL"/>
                                 <toolbarItem reference="9GK-hj-Jwl"/>
                                 <toolbarItem reference="C3P-Br-Hk5"/>
                             </defaultToolbarItems>
@@ -938,11 +939,11 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <textView importsGraphics="NO" richText="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" textCompletion="NO" id="Ek5-iT-zNA">
-                                            <rect key="frame" x="0.0" y="0.0" width="580" height="259"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="610" height="259"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                            <size key="minSize" width="580" height="259"/>
+                                            <size key="minSize" width="610" height="259"/>
                                             <size key="maxSize" width="610" height="10000000"/>
                                             <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                             <connections>
@@ -1844,13 +1845,13 @@
         </scene>
     </scenes>
     <resources>
-        <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSStatusNone" width="16" height="16"/>
         <image name="Run2" width="19" height="19"/>
+        <image name="ScrollToPCIcon" width="19" height="19"/>
         <image name="SetBreakpointIcon" width="19" height="19"/>
-        <image name="StepInIcon" width="32" height="32"/>
+        <image name="StepInIcon" width="19" height="19"/>
         <image name="StepOutIcon" width="32" height="32"/>
         <image name="StepOverIcon" width="19" height="19"/>
-        <image name="StopIcon" width="32" height="32"/>
+        <image name="StopIcon" width="19" height="19"/>
     </resources>
 </document>

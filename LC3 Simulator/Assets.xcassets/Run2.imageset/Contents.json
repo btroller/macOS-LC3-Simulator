@@ -30,7 +30,7 @@
     },
     {
       "idiom" : "universal",
-      "filename" : "RunDark.png",
+      "filename" : "Final_Run_Icon_Dark.png",
       "appearances" : [
         {
           "appearance" : "luminosity",
@@ -41,7 +41,7 @@
     },
     {
       "idiom" : "universal",
-      "filename" : "Run2.png",
+      "filename" : "Final_Run_Icon_Light.png",
       "appearances" : [
         {
           "appearance" : "luminosity",

@@ -6,13 +6,11 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-// TODO: finalize icons
-// TODO: include clock nonsense so execution stops when bit is set
 // TODO: thoroughly test Simulator
 // TODO: find any leaks -- Instruments fails to check for leaks when I start to open files
 // TODO: remove watching for and handlers for unused Notifications
-// TODO: make sure address search field can't be removed
 
+// MAYBE: warn user when they load programs which overlap
 // MAYBE: add button to clear console in console window itself
 // MAYBE: disable text formatting options for text field in console window
 // MAYBE: use notifications and callbacks to talk between model and controller classes (as opposed to keeping references to controller classes around)
@@ -28,7 +26,9 @@
 // MAYBE: add "Set PC" option in context menu - I'm starting to think this is less useful as time goes on
 // MAYBE: set selection indicator color to grey when simulator is running
 // MAYBE: make preference for having keyboard interrupts enabled by default
+// MAYBE: could have a spare simulator sitting around & queued up to replace the current one in case that's what takes time to reset it. Maybe it's just UI junk, though
 
+// EVENTUALLY: consider changing scroll to PC icon
 // EVENTUALLY: disable ⌘F shortuct when the address search bar isn't in view. This doesn't currenlty break anything, but I'd guess it's misleading. Maybe make the search bar permanent somehow
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
 // EVENTUALLY : move logic that should be run on simulator reinitialization to separate function from viewDidLoad() so I can call it separately and also from viewDidLoad()
@@ -606,6 +606,13 @@ extension MainViewController: NSTextFieldDelegate {
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
+        
+        // make sure we update UI based on anything changed (primarily set of MCR)
+        defer {
+            updateRegistersAndToolbarUIEnabledness()
+            reloadRegisterUI()
+        }
+        
         // don't allow edit to go through if simulator is running
         guard !simulator.isRunning else {
             control.abortEditing()
@@ -620,9 +627,9 @@ extension MainViewController: NSTextFieldDelegate {
             updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanBinaryStringToUInt16(_:))
         default:
             
-            defer {
-                self.reloadRegisterUI()
-            }
+//            defer {
+//                self.reloadRegisterUI()
+//            }
             
             // a text field from the registers
             if let decimalRegNum = registersUI?.regs.firstIndex(where: { $0.decimalTextField === control }) {
@@ -658,6 +665,8 @@ extension MainViewController: NSTextFieldDelegate {
             else if control === registersUI?.cc {
                 if let parsedCC = self.scanCCStringToCCType(fieldEditor.string) {
                     self.simulator.registers.cc = parsedCC
+                    print("new cc of \(self.simulator.registers.cc)")
+                    print("new PSR of \(self.simulator.registers.psr)")
                 }
             }
             else if control === registersUI?.psr.decimalTextField {
@@ -688,6 +697,8 @@ extension MainViewController: NSTextFieldDelegate {
                     }
                 }
             }
+            
+//            self.reloadRegisterUI()
         }
 
         return true
@@ -792,11 +803,11 @@ extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
     }
 
     var shouldEnableControlWhichStartsSimulator: Bool {
-        return !simulator.isRunning
+        return !simulator.isRunning && simulator.memory.runLatchIsSet
     }
 
     var shouldEnableStopSimulator: Bool {
-        return simulator.isRunning
+        return simulator.isRunning && simulator.memory.runLatchIsSet
     }
 
     // validation of menu items

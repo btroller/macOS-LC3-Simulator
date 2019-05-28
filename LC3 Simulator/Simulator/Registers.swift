@@ -43,17 +43,21 @@ class Registers {
         case N = "N"
         case Z = "Z"
         case P = "P"
+        case Invalid = "?"
     }
     var cc : CCType {
         get {
-            if N {
+            if N && !Z && !P {
                 return .N
             }
-            else if Z {
+            else if !N && Z && !P {
                 return .Z
             }
-            else {
+            else if !N && !Z && P {
                 return .P
+            }
+            else {
+                return .Invalid
             }
         }
         set {
@@ -64,6 +68,8 @@ class Registers {
                 self.Z = true
             case .P:
                 self.P = true
+            case .Invalid:
+                preconditionFailure()
             }
         }
         

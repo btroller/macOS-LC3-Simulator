@@ -45,6 +45,10 @@ class Memory {
     var DSRIsSet: Bool {
         return self[Memory.DSR].value & 0x8000 == 0x8000
     }
+    
+    var runLatchIsSet: Bool {
+        return self[Memory.MCR].value & 0x8000 == 0x8000
+    }
 
     // TODO: make static singleton instead of passing in `entries`?
     class Entry {
@@ -211,9 +215,9 @@ class Memory {
             entries[address].label = label
         }
 
-        // set breakpoint at end of TRAP_HALT so it stops there by default
-        let trapHaltRETIndex = 0xFD7C
-        entries[trapHaltRETIndex].shouldBreak = true
+//        // set breakpoint at end of TRAP_HALT so it stops there by default
+//        let trapHaltRETIndex = 0xFD7C
+//        entries[trapHaltRETIndex].shouldBreak = true
 
 //        NotificationCenter.default.addObserver(self, selector: #selector(recieveNextCharacterToPalceInKBDR), name: Memory.kReceiveNextConsoleCharacter, object: nil)
     }

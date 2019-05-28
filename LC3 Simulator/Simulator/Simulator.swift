@@ -18,7 +18,7 @@ import Cocoa
 // figure out when to stop executing for each case of step in, step out, etc -- should it be based on returning to an address (easy enough to store a copy w/ a let constant) or do I wait until a specific return happens? should notice after instruciton executes and PC is updated -- but it's not as simple as seeing that the PC is where it would've been otherwise, b/c that's not necessarily returning with RET or similar. You could just wind up there serendipitously through a mistake if somehting like JMP to lower-number address, keep executing and don't return until go through original code and hit original jump, htne pause. That's not really the same as a normal RET
 
 // when character is read, immediately output it to screen, then set kbsr to appropriate value (if more in buffer, still 1, otherwise 0)
-// TODO: use IR?
+// TODO: try to rearrange I/O logic to be only in one place, like the spec says
 // try setting initial SSP to x3000 so it subtracts from 3000
 
 //prefs : follow PC, allow invalid ops? maybe hold off on invalid ops for initial release
@@ -33,10 +33,10 @@ class Simulator {
     // MARK: state-keeping
     var registers = Registers()
     var memory = Memory()
-    var mainVC: MainViewController!
+    var mainVC: MainViewController?
     // TODO: replace with reference to queue in ConsoleVC
-    var consoleVC: ConsoleViewController {
-        return mainVC.consoleVC!
+    var consoleVC: ConsoleViewController? {
+        return mainVC?.consoleVC
     }
     private var _isRunning: Bool = false {
         didSet {
@@ -148,6 +148,13 @@ class Simulator {
         // execute instruction normally
         // TODO: figure out why removing this print() makes console responsiveness plummet
 //        print("executing at \(String.init(format: "0x%04X", registers.pc))")
+        
+        // don't execute anything if the run latch is off
+        if !memory.runLatchIsSet {
+            _isRunning = false
+            return
+        }
+        
         let entryToExecute = currentInstructionEntry
         registers.ir = entryToExecute.value
         let value = registers.ir
@@ -240,7 +247,7 @@ class Simulator {
 //        print("registers: \(registers.r)")
 
         // Update I/O stuff
-        if (consoleVC.queueHasNext && !memory.KBSRIsSet) {
+        if let consoleVC = consoleVC, (consoleVC.queueHasNext && !memory.KBSRIsSet) {
             //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
             memory[Memory.KBDR].value = consoleVC.popFromQueue()!.toUInt16ASCII
             memory[Memory.KBSR].value.setBit(at: 15, to: 1)
@@ -302,7 +309,7 @@ class Simulator {
         repeat {
             executeNextInstruction()
             haveSteppedOut = registers.ir.instructionType == .RET
-        } while (!haveSteppedOut);
+        } while (!currentInstructionEntry.shouldBreak && !haveSteppedOut);
         
         _isRunning = false
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)

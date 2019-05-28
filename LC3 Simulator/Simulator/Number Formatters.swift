@@ -251,6 +251,8 @@ class CCFormatter: Formatter {
             return "Z"
         case .P:
             return "P"
+        case .Invalid:
+            return "?"
         }
     }
     
