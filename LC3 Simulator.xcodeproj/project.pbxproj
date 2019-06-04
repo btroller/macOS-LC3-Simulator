@@ -57,7 +57,6 @@
 		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
-		B5A7DAA622496EE9001ABC03 /* lc3as */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = lc3as; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,7 +90,6 @@
 		B51AC2222175673B00132D60 = {
 			isa = PBXGroup;
 			children = (
-				B5A7DAA622496EE9001ABC03 /* lc3as */,
 				B51AC22D2175673B00132D60 /* LC3 Simulator */,
 				B510E9952225214C007EFA75 /* LC3 SimulatorTests */,
 				B51AC22C2175673B00132D60 /* Products */,

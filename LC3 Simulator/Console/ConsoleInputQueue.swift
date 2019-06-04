@@ -13,7 +13,7 @@ import Foundation
 class ConsoleInputQueue<T> {
     private var head: Node<T>?
     private var tail: Node<T>?
-    
+
     var count: Int = 0 {
         didSet {
             NotificationCenter.default.post(name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil, userInfo: nil)
@@ -26,7 +26,7 @@ class ConsoleInputQueue<T> {
 
         init(_ elem: T) {
             self.elem = elem
-            self.next = nil
+            next = nil
         }
     }
 
@@ -49,11 +49,10 @@ class ConsoleInputQueue<T> {
     func pop() -> T? {
         count = max(0, count - 1) // ensure that even on a nil-returning pop() the count doesn't go below 0
         let nextElement = head?.elem
-        if (tail === head) {
+        if tail === head {
             tail = nil
         }
         head = head?.next
         return nextElement
     }
-
 }

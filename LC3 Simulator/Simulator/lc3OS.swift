@@ -9,7 +9,6 @@
 import Foundation
 
 class LC3OS {
-
     static let nonZeroValues: [UInt16: UInt16] = [
         // Trap vector table (valid entries)
         0x0020: 0x0400,
@@ -149,14 +148,14 @@ class LC3OS {
         0x0568: 0x0020,
         0x0569: 0x000A,
         // Implementation of IN
-        0x04A0: 0x3E06,     // ST R7, SaveR7
-        0x04A1: 0xE006,     // LEA R0, Message
-        0x04A2: 0xF022,     // PUTS
-        0x04A3: 0xF020,     // GETC
-        0x04A4: 0xF021,     // OUT
-        0x04A5: 0x2E01,     // LD R7, SaveR7
-        0x04A6: 0xC1C0,     // RET
-        0x04A7: 0x3001,     // SaveR7 (.BLKW #1)
+        0x04A0: 0x3E06, // ST R7, SaveR7
+        0x04A1: 0xE006, // LEA R0, Message
+        0x04A2: 0xF022, // PUTS
+        0x04A3: 0xF020, // GETC
+        0x04A4: 0xF021, // OUT
+        0x04A5: 0x2E01, // LD R7, SaveR7
+        0x04A6: 0xC1C0, // RET
+        0x04A7: 0x3001, // SaveR7 (.BLKW #1)
         /* the "Input a character> " message goes here */
         // Implementation of PUTSP
         0x04E0: 0x3E27,
@@ -223,7 +222,7 @@ class LC3OS {
         // Display status register
         0xFE04: 0x8000,
         // Machine control register
-        0xFFFE: 0xFFFF
+        0xFFFE: 0xFFFF,
     ]
 
     static let osSymbols = [
@@ -243,7 +242,6 @@ class LC3OS {
         "PRIV_EXC_ADDR": 0x100,
         "PRIV_EXC_HANDLER": 0x510,
         "ILL_OP_EXC_ADDR": 0x101,
-        "ILL_OP_EXC_HANDLER": 0x540
+        "ILL_OP_EXC_HANDLER": 0x540,
     ]
-
 }

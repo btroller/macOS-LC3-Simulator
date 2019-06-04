@@ -37,21 +37,21 @@
 // EVENTUALLY: give list of previously searched for addresses in search bar
 // MAYBE EVENTUALLY: add preference for slow output printing to emphasize characters being outputted? Doesn't seem to useful to me.
 
-import Foundation
 import Cocoa
+import Foundation
 
 class MainViewController: NSViewController {
-
 //    var rowBeingEdited: Int?
 
     // MARK: Constants
+
     let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
     let kStatusAvailableImage = NSImage(imageLiteralResourceName: NSImage.statusAvailableName)
     let kStatusUnavailableIMage = NSImage(imageLiteralResourceName: NSImage.statusUnavailableName)
 
     // TODO: try keeping this thing in interface builder
     let kPCIndicatorColor: NSColor = NSColor(named: NSColor.Name("PCIndicatorColor"))!
-    
+
     let kValueBinaryColumnIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryColumnID"
     let kValueBinaryCellIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryCellID"
     let kValueBinaryTextFieldIdentifier: NSUserInterfaceItemIdentifier = "valueBinaryTextFieldID"
@@ -68,6 +68,7 @@ class MainViewController: NSViewController {
     let kInstructionCellIdentifier: NSUserInterfaceItemIdentifier = "instructionCellID"
 
     // MARK: Variables
+
     typealias Instruction = UInt16
     var simulator = Simulator()
     var memory: Memory!
@@ -76,70 +77,68 @@ class MainViewController: NSViewController {
     let backgroundQueue = DispatchQueue.global(qos: .userInteractive)
 
     // MARK: IB outlets
+
     @IBOutlet var hexNumberFormatter: HexNumberFormatter!
     @IBOutlet var binaryNumberFormatter: BinaryNumberFormatter!
     @IBOutlet var base10NumberFormatter: Base10NumberFormatter!
     @IBOutlet var ccFormatter: CCFormatter!
     // memory UI
-    @IBOutlet weak var memoryTableView: NSTableView!
+    @IBOutlet var memoryTableView: NSTableView!
     // registers UI
-    @IBOutlet weak var r0HexTextField: NSTextField!
-    @IBOutlet weak var r0DecimalTextField: NSTextField!
-    @IBOutlet weak var r1HexTextField: NSTextField!
-    @IBOutlet weak var r1DecimalTextField: NSTextField!
-    @IBOutlet weak var r2HexTextField: NSTextField!
-    @IBOutlet weak var r2DecmialTextField: NSTextField!
-    @IBOutlet weak var r3HexTextField: NSTextField!
-    @IBOutlet weak var r3DecimalTextField: NSTextField!
-    @IBOutlet weak var r4HexTextField: NSTextField!
-    @IBOutlet weak var r4DecimalTextField: NSTextField!
-    @IBOutlet weak var r5HexTextField: NSTextField!
-    @IBOutlet weak var r5DecimalTextField: NSTextField!
-    @IBOutlet weak var r6HexTextField: NSTextField!
-    @IBOutlet weak var r6DecimalTextField: NSTextField!
-    @IBOutlet weak var r7HexTextField: NSTextField!
-    @IBOutlet weak var r7DecimalTextField: NSTextField!
-    @IBOutlet weak var pcHexTextField: NSTextField!
-    @IBOutlet weak var pcDecimalTextField: NSTextField!
-    @IBOutlet weak var irHexTextField: NSTextField!
-    @IBOutlet weak var irDecimalTextField: NSTextField!
-    @IBOutlet weak var psrHexTextField: NSTextField!
-    @IBOutlet weak var psrDecimalTextField: NSTextField!
-    @IBOutlet weak var ccTextField: NSTextField!
-    
+    @IBOutlet var r0HexTextField: NSTextField!
+    @IBOutlet var r0DecimalTextField: NSTextField!
+    @IBOutlet var r1HexTextField: NSTextField!
+    @IBOutlet var r1DecimalTextField: NSTextField!
+    @IBOutlet var r2HexTextField: NSTextField!
+    @IBOutlet var r2DecmialTextField: NSTextField!
+    @IBOutlet var r3HexTextField: NSTextField!
+    @IBOutlet var r3DecimalTextField: NSTextField!
+    @IBOutlet var r4HexTextField: NSTextField!
+    @IBOutlet var r4DecimalTextField: NSTextField!
+    @IBOutlet var r5HexTextField: NSTextField!
+    @IBOutlet var r5DecimalTextField: NSTextField!
+    @IBOutlet var r6HexTextField: NSTextField!
+    @IBOutlet var r6DecimalTextField: NSTextField!
+    @IBOutlet var r7HexTextField: NSTextField!
+    @IBOutlet var r7DecimalTextField: NSTextField!
+    @IBOutlet var pcHexTextField: NSTextField!
+    @IBOutlet var pcDecimalTextField: NSTextField!
+    @IBOutlet var irHexTextField: NSTextField!
+    @IBOutlet var irDecimalTextField: NSTextField!
+    @IBOutlet var psrHexTextField: NSTextField!
+    @IBOutlet var psrDecimalTextField: NSTextField!
+    @IBOutlet var ccTextField: NSTextField!
+
     class RegistersUI {
-        
         class DecimalHexTextFieldPair {
-            
-            var hexTextField : NSTextField
-            var decimalTextField : NSTextField
-            
-            init(hexTextField : NSTextField, decimalTextField : NSTextField) {
+            var hexTextField: NSTextField
+            var decimalTextField: NSTextField
+
+            init(hexTextField: NSTextField, decimalTextField: NSTextField) {
                 self.hexTextField = hexTextField
                 self.decimalTextField = decimalTextField
             }
-            
+
             func setEnabled(to newVal: Bool) {
-                self.hexTextField.isEnabled = newVal
-                self.decimalTextField.isEnabled = newVal
+                hexTextField.isEnabled = newVal
+                decimalTextField.isEnabled = newVal
             }
-            
         }
-        
-        var regs : [DecimalHexTextFieldPair]
-        var pc : DecimalHexTextFieldPair
-        var ir : DecimalHexTextFieldPair
-        var psr : DecimalHexTextFieldPair
-        var cc : NSTextField
-        
+
+        var regs: [DecimalHexTextFieldPair]
+        var pc: DecimalHexTextFieldPair
+        var ir: DecimalHexTextFieldPair
+        var psr: DecimalHexTextFieldPair
+        var cc: NSTextField
+
         init(r0: [NSTextField], r1: [NSTextField], r2: [NSTextField], r3: [NSTextField], r4: [NSTextField], r5: [NSTextField], r6: [NSTextField], r7: [NSTextField], pc: [NSTextField], ir: [NSTextField], psr: [NSTextField], cc: NSTextField) {
-            self.regs = [DecimalHexTextFieldPair(hexTextField: r0[0], decimalTextField: r0[1]), DecimalHexTextFieldPair(hexTextField: r1[0], decimalTextField: r1[1]), DecimalHexTextFieldPair(hexTextField: r2[0], decimalTextField: r2[1]), DecimalHexTextFieldPair(hexTextField: r3[0], decimalTextField: r3[1]), DecimalHexTextFieldPair(hexTextField: r4[0], decimalTextField: r4[1]), DecimalHexTextFieldPair(hexTextField: r5[0], decimalTextField: r5[1]), DecimalHexTextFieldPair(hexTextField: r6[0], decimalTextField: r6[1]), DecimalHexTextFieldPair(hexTextField: r7[0], decimalTextField: r7[1])]
+            regs = [DecimalHexTextFieldPair(hexTextField: r0[0], decimalTextField: r0[1]), DecimalHexTextFieldPair(hexTextField: r1[0], decimalTextField: r1[1]), DecimalHexTextFieldPair(hexTextField: r2[0], decimalTextField: r2[1]), DecimalHexTextFieldPair(hexTextField: r3[0], decimalTextField: r3[1]), DecimalHexTextFieldPair(hexTextField: r4[0], decimalTextField: r4[1]), DecimalHexTextFieldPair(hexTextField: r5[0], decimalTextField: r5[1]), DecimalHexTextFieldPair(hexTextField: r6[0], decimalTextField: r6[1]), DecimalHexTextFieldPair(hexTextField: r7[0], decimalTextField: r7[1])]
             self.pc = DecimalHexTextFieldPair(hexTextField: pc[0], decimalTextField: pc[1])
             self.ir = DecimalHexTextFieldPair(hexTextField: ir[0], decimalTextField: ir[1])
             self.psr = DecimalHexTextFieldPair(hexTextField: psr[0], decimalTextField: psr[1])
             self.cc = cc
         }
-        
+
         func setEnabled(to newVal: Bool) {
             DispatchQueue.main.async {
                 for reg in self.regs {
@@ -151,14 +150,13 @@ class MainViewController: NSViewController {
                 self.cc.isEnabled = newVal
             }
         }
-        
     }
-    
-    var registersUI : RegistersUI?
-    
+
+    var registersUI: RegistersUI?
+
     func reloadRegisterUI() {
         DispatchQueue.main.async {
-            for regNum in 0...7 {
+            for regNum in 0 ... 7 {
                 self.registersUI?.regs[regNum].hexTextField.intValue = Int32(self.simulator.registers.r[regNum])
                 self.registersUI?.regs[regNum].decimalTextField.intValue = Int32(self.simulator.registers.r[regNum])
             }
@@ -168,23 +166,23 @@ class MainViewController: NSViewController {
             self.registersUI?.ir.decimalTextField.intValue = Int32(self.simulator.registers.ir)
             self.registersUI?.psr.hexTextField.intValue = Int32(self.simulator.registers.psr)
             self.registersUI?.psr.decimalTextField.intValue = Int32(self.simulator.registers.psr)
-            
+
             let ccString = self.simulator.registers.cc.rawValue
             self.registersUI?.cc.stringValue = ccString
         }
     }
-    
-    static let kSimulatorChangedRunStatus = Notification.Name.init("simulatorChangedRunStatus")
-    
-    @objc private func simulatorChangedRunningStatus(_ notification: Notification) {
+
+    static let kSimulatorChangedRunStatus = Notification.Name("simulatorChangedRunStatus")
+
+    @objc private func simulatorChangedRunningStatus(_: Notification) {
         updateRegistersAndToolbarUIEnabledness()
     }
-    
+
     func updateRegistersAndToolbarUIEnabledness() {
         registersUI?.setEnabled(to: !simulator.isRunning)
         NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
-    
+
     func updateUIAfterSimulatorRun(modifiedRows: IndexSet) {
         memoryTableView.reloadModifedRows(modifiedRows)
         pcChanged()
@@ -200,7 +198,8 @@ class MainViewController: NSViewController {
     }
 
     // MARK: IB actions
-    @IBAction func runClickedWithSender(_ sender: AnyObject) {
+
+    @IBAction func runClickedWithSender(_: AnyObject) {
         print("run clicked")
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
         backgroundQueue.async {
@@ -209,14 +208,14 @@ class MainViewController: NSViewController {
         updateRegistersAndToolbarUIEnabledness()
     }
 
-    @IBAction func stepInClickedWithSender(_ sender: AnyObject) {
+    @IBAction func stepInClickedWithSender(_: AnyObject) {
         print("step clicked")
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
-        simulator.stepIn(finallyUpdateIndexes: self.updateUIAfterSimulatorRun)
+        simulator.stepIn(finallyUpdateIndexes: updateUIAfterSimulatorRun)
         updateRegistersAndToolbarUIEnabledness()
     }
 
-    @IBAction func stepOutClickedWithSender(_ sender: AnyObject) {
+    @IBAction func stepOutClickedWithSender(_: AnyObject) {
         print("step out clicked")
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
         backgroundQueue.async {
@@ -225,7 +224,7 @@ class MainViewController: NSViewController {
         updateRegistersAndToolbarUIEnabledness()
     }
 
-    @IBAction func stepOverClickedWithSender(_ sender: AnyObject) {
+    @IBAction func stepOverClickedWithSender(_: AnyObject) {
         print("step over clicked")
 //        preconditionFailure("not implemented yet")
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
@@ -235,13 +234,13 @@ class MainViewController: NSViewController {
         NSApp.mainWindow?.toolbar?.validateVisibleItems()
     }
 
-    @IBAction func stopClickedWithSender(_ sender: AnyObject) {
+    @IBAction func stopClickedWithSender(_: AnyObject) {
         simulator.stopRunning()
         updateRegistersAndToolbarUIEnabledness()
     }
 
     // when requested to jump to the PC, insert the PC as a string into the search bar and search for it
-    @IBAction func scrollToPCClickedWithSender(_ sender: AnyObject) {
+    @IBAction func scrollToPCClickedWithSender(_: AnyObject) {
         DispatchQueue.main.async {
             let pcAsInt = Int(self.simulator.registers.pc)
             self.memoryTableView.scrollToMakeRowVisibleWithSpacing(pcAsInt)
@@ -252,7 +251,7 @@ class MainViewController: NSViewController {
     }
 
     // reset machine state
-    @IBAction func resetSimulatorPressedWithSender(_ sender: AnyObject) {
+    @IBAction func resetSimulatorPressedWithSender(_: AnyObject) {
         DispatchQueue.main.async {
             self.simulator.stopRunning() // required because it's running in a dispatch queue, so it'll keep execuing unless I kill it directly -- ARC doesn't do this for me
             self.simulator = Simulator()
@@ -264,7 +263,7 @@ class MainViewController: NSViewController {
         }
     }
 
-    @IBAction func setPCPressedWithSender(_ sender: AnyObject) {
+    @IBAction func setPCPressedWithSender(_: AnyObject) {
         assert(!simulator.isRunning && memoryTableView.selectedRowIndexes.count == 1)
 
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
@@ -274,19 +273,19 @@ class MainViewController: NSViewController {
     }
 
     func setConsoleVC(to vc: ConsoleViewController) {
-        self.consoleVC = vc
+        consoleVC = vc
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         // display the console window when this VC loads
         // TODO: maybe use this sender instead of NSApp.mainWindow... in Console stuff
         performSegue(withIdentifier: "showConsoleWindow", sender: self)
-        
+
         memory = simulator.memory
         simulator.setMainVC(to: self)
-        
+
         // show memory table view appropriately
         DispatchQueue.main.async {
             self.memoryTableView.reloadData()
@@ -297,24 +296,22 @@ class MainViewController: NSViewController {
         // initialize register UI
         registersUI = RegistersUI(r0: [r0HexTextField, r0DecimalTextField], r1: [r1HexTextField, r1DecimalTextField], r2: [r2HexTextField, r2DecmialTextField], r3: [r3HexTextField, r3DecimalTextField], r4: [r4HexTextField, r4DecimalTextField], r5: [r5HexTextField, r5DecimalTextField], r6: [r6HexTextField, r6DecimalTextField], r7: [r7HexTextField, r7DecimalTextField], pc: [pcHexTextField, pcDecimalTextField], ir: [irHexTextField, irDecimalTextField], psr: [psrHexTextField, psrDecimalTextField], cc: ccTextField)
         reloadRegisterUI()
-        
+
         // NOTE: I attempted to specify `object` as simulator.memory, but it didn't work.
         //        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: MainViewController.kLogCharacterMessageName, object: nil)
         //        NSApp.mainWindow?.makeKeyAndOrderFront(self)
         NotificationCenter.default.addObserver(self, selector: #selector(simulatorChangedRunningStatus(_:)), name: MainViewController.kSimulatorChangedRunStatus, object: nil)
     }
-
 }
 
 extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
-
     // TODO: rename to something better
     // TODO: abstact away from specific column like done in other cases (onItemDoubleClicked) - replace 0
-    @IBAction func onItemClicked(_ sender: AnyObject) {
+    @IBAction func onItemClicked(_: AnyObject) {
 //        print("row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn) clicked")
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
 
-        if memoryTableView.clickedColumn == breakpointColumnIndex && memoryTableView.clickedRow >= 0 {
+        if memoryTableView.clickedColumn == breakpointColumnIndex, memoryTableView.clickedRow >= 0 {
             memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
             // only need to reload the view containing the breakpoint icon
             memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
@@ -323,7 +320,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     // TODO: rename to something better
     // NOTE: might also trigger for registers table view for now
-    @IBAction func onItemDoubleClicked(_ sender: AnyObject) {
+    @IBAction func onItemDoubleClicked(_: AnyObject) {
         guard memoryTableView.clickedRow >= 0 else { return }
 //        print("double clicked on row \(memoryTableView.clickedRow), col \(memoryTableView.clickedColumn)")
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
@@ -338,31 +335,31 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             // value (binary) column
             guard !simulator.isRunning else { return }
 
-            let rowToEdit = self.memoryTableView.clickedRow
-            let columnToEdit = self.memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
+            let rowToEdit = memoryTableView.clickedRow
+            let columnToEdit = memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
 
 //            rowBeingEdited = rowToEdit
 
-            (self.memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
-            self.memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
+            (memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
+            memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
         case hexValueColumnIndex:
             // value (hex) column
             guard !simulator.isRunning else { return }
 
-            let rowToEdit = self.memoryTableView.clickedRow
-            let columnToEdit = self.memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
+            let rowToEdit = memoryTableView.clickedRow
+            let columnToEdit = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
 
 //            rowBeingEdited = rowToEdit
 
-            (self.memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
-            self.memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
+            (memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
+            memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
         default:
             break
         }
     }
 
     // TODO: hook up to menu item and toolbar button, then make sure those are only enabled if it makes sense (same logic as used for setting pc to selected row)
-    @IBAction func toggleBreakpointClickedWithSender(_ sender: AnyObject) {
+    @IBAction func toggleBreakpointClickedWithSender(_: AnyObject) {
         assert(memoryTableView.selectedRowIndexes.count == 1)
         // MAYBE perform check for valid row here
 
@@ -380,14 +377,14 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         //            memory[UInt16(memoryTableView.clickedRow)].shouldBreak.toggle()
         //            memoryTableView.reloadData(forRowIndexes: [memoryTableView.clickedRow], columnIndexes: [memoryTableView.clickedColumn])
         //        }
-
     }
 
-    func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
+    func control(_: NSControl, textShouldBeginEditing _: NSText) -> Bool {
         return !simulator.isRunning
     }
 
     // MARK: NSTableView stuff
+
     func numberOfRows(in tableView: NSTableView) -> Int {
         if tableView === memoryTableView {
             return 0x10000
@@ -437,7 +434,8 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
             return tableView.createNSTableCellViewWithStringIdentifier(kInstructionCellIdentifier, stringValue: memory.instructionString(at: row))
 
-        // MARK: cases having to do with second table
+            // MARK: cases having to do with second table
+
         case "registerNameCol1":
             let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
             cellView.textField?.stringValue = "R\(row)"
@@ -448,7 +446,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             return cellView
         case "registerNameCol3":
             let cellView = tableView.makeView(withIdentifier: "registerNameCol1", owner: self) as! NSTableCellView
-            if (row == 2) {
+            if row == 2 {
                 cellView.textField?.stringValue = "CC"
             } else {
                 cellView.textField?.stringValue = "R\(row + 6)"
@@ -488,8 +486,8 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 //    }
 
     // color newly-appearing rows green iff the simulator isn't running instructions and the row is of the PC
-    func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
-        if !simulator.isRunning && row == simulator.registers.pc {
+    func tableView(_: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
+        if !simulator.isRunning, row == simulator.registers.pc {
             rowView.backgroundColor = kPCIndicatorColor
         }
     }
@@ -510,22 +508,21 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
     ////        assertionFailure()
     //
     //    }
-
 }
 
 // MARK: NSOpenSavePanelDelegate methods
-extension MainViewController: NSOpenSavePanelDelegate {
 
+extension MainViewController: NSOpenSavePanelDelegate {
     // NOTE: not a part of the delegate
-    @IBAction func openDocument(_ sender: NSMenuItem) {
+    @IBAction func openDocument(_: NSMenuItem) {
         print("called openDocument() in VC")
         let window = NSApp.mainWindow!
         let panel = NSOpenPanel()
         panel.delegate = self
         panel.message = "Import an assembled file"
         panel.allowsMultipleSelection = true
-        panel.beginSheetModal(for: window) { (response) in
-            switch (response) {
+        panel.beginSheetModal(for: window) { response in
+            switch response {
             case .OK:
                 print("selected the files \(panel.urls)")
 
@@ -543,17 +540,15 @@ extension MainViewController: NSOpenSavePanelDelegate {
     }
 
     // EVENTUALLY: allow .asm files and do the whole automatic assembling and loading thing
-    func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+    func panel(_: Any, shouldEnable url: URL) -> Bool {
         return url.pathExtension == "obj" || url.hasDirectoryPath
     }
-
 }
 
 // parsing new values from memory table view
 // TODO: put scanning functions inside of control()
 extension MainViewController: NSTextFieldDelegate {
-
-    @inline(__always)func scanStringToUInt16WithFormatter(string: String, formatter: Formatter) -> UInt16? {
+    @inline(__always) func scanStringToUInt16WithFormatter(string: String, formatter: Formatter) -> UInt16? {
         var obj: AnyObject = 0 as AnyObject
         let pointer = AutoreleasingUnsafeMutablePointer<AnyObject?>(&obj)
         if formatter.getObjectValue(pointer, for: string, errorDescription: nil) {
@@ -562,7 +557,7 @@ extension MainViewController: NSTextFieldDelegate {
             return nil
         }
     }
-    
+
     func scanBinaryStringToUInt16(_ string: String) -> UInt16? {
         return scanStringToUInt16WithFormatter(string: string, formatter: binaryNumberFormatter)
     }
@@ -570,11 +565,11 @@ extension MainViewController: NSTextFieldDelegate {
     func scanHexStringToUInt16(_ string: String) -> UInt16? {
         return scanStringToUInt16WithFormatter(string: string, formatter: hexNumberFormatter)
     }
-    
+
     func scanBase10StringToUInt16(_ string: String) -> UInt16? {
         return scanStringToUInt16WithFormatter(string: string, formatter: base10NumberFormatter)
     }
-    
+
     // TODO: figure out why CCFormatter was causing errors when run previously. The return value seemed fine -- I think the autoreleasing pointer junk is what killed it
     func scanCCStringToCCType(_ string: String) -> Registers.CCType? {
         switch string {
@@ -591,7 +586,7 @@ extension MainViewController: NSTextFieldDelegate {
 
     func updateMemoryTableView(control: NSControl, fieldEditor: NSText, scanner: (String) -> UInt16?) {
         let rowBeingEdited = memoryTableView.row(for: control)
-        
+
         if rowBeingEdited >= 0, let parsedString = scanner(fieldEditor.string) {
             DispatchQueue.main.async {
                 self.memory?[UInt16(rowBeingEdited)].value = parsedString
@@ -602,17 +597,16 @@ extension MainViewController: NSTextFieldDelegate {
             }
         }
     }
-    
+
     // if text makes sense, set memory, then reload table view
     // if it doesn't, just reload table view
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
-        
         // make sure we update UI based on anything changed (primarily set of MCR)
         defer {
             updateRegistersAndToolbarUIEnabledness()
             reloadRegisterUI()
         }
-        
+
         // don't allow edit to go through if simulator is running
         guard !simulator.isRunning else {
             control.abortEditing()
@@ -621,16 +615,16 @@ extension MainViewController: NSTextFieldDelegate {
 
         // put new value into memory, then reload table view
         switch control.identifier {
-        case self.kValueHexTextFieldIdentifier:
+        case kValueHexTextFieldIdentifier:
             updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanHexStringToUInt16(_:))
-        case self.kValueBinaryTextFieldIdentifier:
+        case kValueBinaryTextFieldIdentifier:
             updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanBinaryStringToUInt16(_:))
         default:
-            
+
 //            defer {
 //                self.reloadRegisterUI()
 //            }
-            
+
             // a text field from the registers
             if let decimalRegNum = registersUI?.regs.firstIndex(where: { $0.decimalTextField === control }) {
                 if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
@@ -638,66 +632,58 @@ extension MainViewController: NSTextFieldDelegate {
                         self.simulator.registers.r[decimalRegNum] = parsedString
                     }
                 }
-            }
-            else if let hexRegNum = registersUI?.regs.firstIndex(where: { $0.hexTextField === control }) {
+            } else if let hexRegNum = registersUI?.regs.firstIndex(where: { $0.hexTextField === control }) {
                 if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.simulator.registers.r[hexRegNum] = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.pc.decimalTextField {
+            } else if control === registersUI?.pc.decimalTextField {
                 if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.memoryTableView.resetRowColorOf(row: Int(self.simulator.registers.pc))
                         self.simulator.registers.pc = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.pc.hexTextField {
+            } else if control === registersUI?.pc.hexTextField {
                 if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.memoryTableView.resetRowColorOf(row: Int(self.simulator.registers.pc))
                         self.simulator.registers.pc = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.cc {
+            } else if control === registersUI?.cc {
                 if let parsedCC = self.scanCCStringToCCType(fieldEditor.string) {
-                    self.simulator.registers.cc = parsedCC
-                    print("new cc of \(self.simulator.registers.cc)")
-                    print("new PSR of \(self.simulator.registers.psr)")
+                    simulator.registers.cc = parsedCC
+                    print("new cc of \(simulator.registers.cc)")
+                    print("new PSR of \(simulator.registers.psr)")
                 }
-            }
-            else if control === registersUI?.psr.decimalTextField {
+            } else if control === registersUI?.psr.decimalTextField {
                 if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.simulator.registers.psr = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.psr.hexTextField {
+            } else if control === registersUI?.psr.hexTextField {
                 if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.simulator.registers.psr = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.ir.decimalTextField {
+            } else if control === registersUI?.ir.decimalTextField {
                 if let parsedString = self.scanBase10StringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.simulator.registers.ir = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.ir.hexTextField {
+            } else if control === registersUI?.ir.hexTextField {
                 if let parsedString = self.scanHexStringToUInt16(fieldEditor.string) {
                     DispatchQueue.main.async {
                         self.simulator.registers.ir = parsedString
                     }
                 }
             }
-            
+
 //            self.reloadRegisterUI()
         }
 
@@ -706,8 +692,8 @@ extension MainViewController: NSTextFieldDelegate {
 }
 
 // MARK: search bar stuff
-extension MainViewController {
 
+extension MainViewController {
     @IBAction func searchingFinished(_ sender: NSSearchField) {
         if let scannedValue = scanHexStringToUInt16(sender.stringValue) {
             let scannedValueAsInt = Int(scannedValue)
@@ -720,32 +706,31 @@ extension MainViewController {
     }
 
     // makes ⌘F shortcut or click of menu item trigger search bar
-    @IBAction func findMenuItemClickedWithSender(_ sender: Any) {
+    @IBAction func findMenuItemClickedWithSender(_: Any) {
         if let mainWindowController = NSApp.mainWindow?.windowController as? MainWindowController {
             mainWindowController.makeAddressSearchFieldFirstResponder()
         }
     }
-
 }
 
 // MARK: utility method extensions to NSTableView
-extension NSTableView {
 
+extension NSTableView {
     // utility method used to scroll to a row with spacing around it
     // NOTE: relies on caller executing this on main thread
     // two scrolls are used to make spacing easier - otherwise there's some annoyingly complex logic here
     func scrollToMakeRowVisibleWithSpacing(_ row: Int) {
-        self.scrollRowToVisible(self.numberOfRows - 1)
-        self.scrollRowToVisible(max(row, 0))
+        scrollRowToVisible(numberOfRows - 1)
+        scrollRowToVisible(max(row, 0))
     }
 
     // gets all column indexes in a NSTableView
     var allColumnIndexes: IndexSet {
-        return IndexSet(integersIn: self.tableColumns.indices)
+        return IndexSet(integersIn: tableColumns.indices)
     }
 
     @inline(__always) func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, stringValue: String) -> NSTableCellView {
-        let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
+        let cellView = makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
 
         cellView.textField?.stringValue = stringValue
 
@@ -753,7 +738,7 @@ extension NSTableView {
     }
 
     @inline(__always) func createNSTableCellViewWithStringIdentifier(_ identifier: NSUserInterfaceItemIdentifier, imageValue: NSImage) -> NSTableCellView {
-        let cellView = self.makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
+        let cellView = makeView(withIdentifier: identifier, owner: self) as! NSTableCellView
 
         cellView.imageView?.image = imageValue
 
@@ -764,7 +749,7 @@ extension NSTableView {
     func resetRowColorOf(row: Int) {
         let referenceRowIndex = row >= 2 ? row - 2 : row + 2
         if let originalColor = self.rowView(atRow: referenceRowIndex, makeIfNecessary: false)?.backgroundColor {
-            self.rowView(atRow: row, makeIfNecessary: false)?.backgroundColor = originalColor
+            rowView(atRow: row, makeIfNecessary: false)?.backgroundColor = originalColor
         }
 //        if let originalColor = self.rowView(atRow: row - 2, makeIfNecessary: false)?.backgroundColor {
 //            self.rowView(atRow: row, makeIfNecessary: false)?.backgroundColor = originalColor
@@ -778,22 +763,18 @@ extension NSTableView {
             self.reloadData(forRowIndexes: modifiedRows, columnIndexes: self.allColumnIndexes)
         }
     }
-
 }
 
 // allows me to pass strings as arguments which expect NSUserInterfaceItemIdentifiers, avoiding bloat from explicit calls to the NSUserInterfaceItemIdentifier constructor
 extension NSUserInterfaceItemIdentifier: ExpressibleByStringLiteral {
-
     public typealias StringLiteralType = String
 
     public init(stringLiteral value: StringLiteralType) {
         self.init(rawValue: value)
     }
-
 }
 
 extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
-
     var shouldEnableSetPCToSelectedRow: Bool {
         return !simulator.isRunning && memoryTableView.selectedRowIndexes.count == 1
     }
@@ -851,13 +832,11 @@ extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
             return true
         }
     }
-
 }
 
 // trick non-image NSToolbarItems into calling validate() anyway, enabling or disabling them as desired
 // NOTE: must use this subclass of NSToolbarItem for it to work. I tried extending NSToolbarItem, but it fought me
 class MyNSToolbarItem: NSToolbarItem {
-
     override func validate() {
         DispatchQueue.main.async {
             if let control = self.view as? NSControl, let action = self.action, let validator = NSApp.target(forAction: action, to: self.target, from: self) {
@@ -868,24 +847,20 @@ class MyNSToolbarItem: NSToolbarItem {
             }
         }
     }
-
 }
 
 extension NSApplication {
-
-    func getWindowWith(identifier: NSUserInterfaceItemIdentifier) -> NSWindow? {
-        let windowsWithIdentifier = self.windows.filter({$0.identifier == "MainWindowID"})
+    func getWindowWith(identifier _: NSUserInterfaceItemIdentifier) -> NSWindow? {
+        let windowsWithIdentifier = windows.filter { $0.identifier == "MainWindowID" }
         assert(windowsWithIdentifier.count == 1)
         return windowsWithIdentifier.first
     }
-
 }
 
-//extension NSToolbarItem {
+// extension NSToolbarItem {
 //
 //    override func validate() {
 //        preconditionFailure()
 //    }
 //
-//}
-
+// }

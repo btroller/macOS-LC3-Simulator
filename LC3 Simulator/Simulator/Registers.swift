@@ -38,43 +38,40 @@ class Registers {
 
     var ir: UInt16 = 0x0000
     var psr: UInt16 = 0x8002 // set CC to N = 0, Z = 1, P = 0 and privilege mode to user
-    
+
     enum CCType: String {
-        case N = "N"
-        case Z = "Z"
-        case P = "P"
+        case N
+        case Z
+        case P
         case Invalid = "?"
     }
-    var cc : CCType {
+
+    var cc: CCType {
         get {
-            if N && !Z && !P {
+            if N, !Z, !P {
                 return .N
-            }
-            else if !N && Z && !P {
+            } else if !N, Z, !P {
                 return .Z
-            }
-            else if !N && !Z && P {
+            } else if !N, !Z, P {
                 return .P
-            }
-            else {
+            } else {
                 return .Invalid
             }
         }
         set {
             switch newValue {
             case .N:
-                self.N = true
+                N = true
             case .Z:
-                self.Z = true
+                Z = true
             case .P:
-                self.P = true
+                P = true
             case .Invalid:
                 preconditionFailure()
             }
         }
-        
     }
-    
+
     private var N: Bool {
         get {
             return psr.getBit(at: 2) == 1
@@ -86,6 +83,7 @@ class Registers {
             psr.setBit(at: 0, to: 0)
         }
     }
+
     private var Z: Bool {
         get {
             return psr.getBit(at: 1) == 1
@@ -97,6 +95,7 @@ class Registers {
             psr.setBit(at: 0, to: 0)
         }
     }
+
     private var P: Bool {
         get {
             return psr.getBit(at: 0) == 1
@@ -108,6 +107,7 @@ class Registers {
             psr.setBit(at: 0, to: 1)
         }
     }
+
     var r: [UInt16] = [UInt16].init(repeating: 0, count: 8)
     // see book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
     var savedSSP: UInt16 = 0x2FFF // at 0x2FFF and not 0x3000 b/c the label for SS_START will now appear outside of user memory. Possibly a bit confusing, though.
@@ -116,7 +116,7 @@ class Registers {
     var mainVC: MainViewController?
 
     func setMainVC(to vc: MainViewController) {
-        self.mainVC = vc
+        mainVC = vc
     }
 
     enum PrivilegeMode {
@@ -126,7 +126,7 @@ class Registers {
 
     var privilegeMode: PrivilegeMode {
         get {
-            if (psr.getBit(at: 15) == 1) {
+            if psr.getBit(at: 15) == 1 {
                 return .User
             } else {
                 return .Supervisor
@@ -155,15 +155,14 @@ class Registers {
     }
 
     subscript(index: UInt16) -> UInt16 {
-
         get {
-            precondition(0...7 ~= index, "Attempt to access illegal register no. \(index)")
+            precondition(0 ... 7 ~= index, "Attempt to access illegal register no. \(index)")
 
             return r[Int(index)]
         }
         // NOTE: sets only the value of the memory entry
         set {
-            precondition(0...7 ~= index, "Attempt to access illegal register no. \(index)")
+            precondition(0 ... 7 ~= index, "Attempt to access illegal register no. \(index)")
 
             r[Int(index)] = newValue
         }

@@ -6,10 +6,9 @@
 //  Copyright © 2018 Benjamin Troller. All rights reserved.
 //
 
-import Foundation
 import Cocoa
+import Foundation
 
-// Q: should I include a "step" button to only execute 1 instruction? A: I think so
 // what should do if non-implemented/reserved instruction? send to exception handler? see current spot in book
 // have way to manage files to be assembled and loaded each time so you can avoid loading from previously chosen ones
 //  should I support C-file compiling as well? probably not necessary
@@ -21,16 +20,17 @@ import Cocoa
 // TODO: try to rearrange I/O logic to be only in one place, like the spec says
 // try setting initial SSP to x3000 so it subtracts from 3000
 
-//prefs : follow PC, allow invalid ops? maybe hold off on invalid ops for initial release
+// prefs : follow PC, allow invalid ops? maybe hold off on invalid ops for initial release
 // if implement jump to label, only exact match on label?
 // allow "jump to addresss" and "jump to PC" in menu? probably only both if don't use search bar
 
 class Simulator {
-
     // MARK: constants
+
     let kKeyboardPriorityLevel: UInt16 = 4
 
     // MARK: state-keeping
+
     var registers = Registers()
     var memory = Memory()
     var mainVC: MainViewController?
@@ -38,14 +38,17 @@ class Simulator {
     var consoleVC: ConsoleViewController? {
         return mainVC?.consoleVC
     }
+
     private var _isRunning: Bool = false {
         didSet {
             NotificationCenter.default.post(name: MainViewController.kSimulatorChangedRunStatus, object: nil, userInfo: nil)
         }
     }
+
     var isRunning: Bool {
         return _isRunning
     }
+
     func stopRunning() {
         _isRunning = false
     }
@@ -69,7 +72,7 @@ class Simulator {
 //    static let kFinishedRunningWithModifiedMemoryLocationsMessage = NSNotification.Name(rawValue: "finishedRunningWithModifedMemoryLocations")
 
     func setMainVC(to vc: MainViewController) {
-        self.mainVC = vc
+        mainVC = vc
         memory.setMainVC(to: vc)
         registers.setMainVC(to: vc)
     }
@@ -86,31 +89,30 @@ class Simulator {
 
     func loadR6WithSSPIfNotAlreadyThere() {
         let oldPrivilegeMode = registers.privilegeMode
-        
+
         // 3: Load R6 with SSP if not already there
         if oldPrivilegeMode == .User {
             registers.savedUSP = registers.r[6]
             registers.r[6] = registers.savedSSP
         }
     }
-    
+
     func initiateException(withType exceptionType: ExceptionType) {
-        
         let oldPC = registers.pc
         let oldPSR = registers.psr
-        
+
         // 2
         loadR6WithSSPIfNotAlreadyThere()
-        
+
         // 1: set privilege mode to supervisor
         registers.privilegeMode = .Supervisor
-        
-        // TODO 3: The PSR and PC of the interrupted process are pushed onto the Supervisor Stack.
+
+        // 3: The PSR and PC of the interrupted process are pushed onto the Supervisor Stack.
         registers.r[6] &-= 1
         memory.setValue(at: registers.r[6], to: oldPSR, then: modifiedMemoryLocationsTracker.insert)
         registers.r[6] &-= 1
         memory.setValue(at: registers.r[6], to: oldPC &- 1, then: modifiedMemoryLocationsTracker.insert(_:))
-        
+
         // 4: The exception supplies its 8-bit vector. In the case of the Privilege mode violation, that vector is xOO. In the case of the illegal opcode, that vector is xOl.
         let vector = exceptionType.rawValue
         // 5: The processor expands that vector to xOlOO or xOlOl, the corresponding 16-bit address in the interrupt vector table
@@ -123,18 +125,18 @@ class Simulator {
     // NOTE: not implemented exactly the way the book describes it, because the book doesn't do it in a sane way (as best I can tell). I update the stack pointer if necessary to point to the supervisor stack, store the PC and PSR, update the PSR to reflect that we're in supervisor mode and update the priority of the PSR, and finally jump to the service routine. Comment numbering appears as I copied it from the book, not in the order I choose to execute it.
     func initiateInterrupt() {
         loadR6WithSSPIfNotAlreadyThere()
-        
-        // TODO 4: push PSR and PC of interrupted process onto supervisor stack
+
+        // 4: push PSR and PC of interrupted process onto supervisor stack
         registers.r[6] &-= 1
         memory.setValue(at: registers.r[6], to: registers.psr, then: modifiedMemoryLocationsTracker.insert)
         registers.r[6] &-= 1
         memory.setValue(at: registers.r[6], to: registers.pc &- 1, then: modifiedMemoryLocationsTracker.insert(_:))
-        
+
         // 1: set privilege mode to supervisor
         registers.privilegeMode = .Supervisor
         // 2: set priority level to PL4 (priority of keyboard)
         registers.priorityLevel = kKeyboardPriorityLevel
-        
+
         // 5: keyboard supplies its 8-bit interrupt vector
         let interruptVector: UInt16 = 0x80
         // 6: processor expands vector
@@ -148,27 +150,27 @@ class Simulator {
         // execute instruction normally
         // TODO: figure out why removing this print() makes console responsiveness plummet
 //        print("executing at \(String.init(format: "0x%04X", registers.pc))")
-        
+
         // don't execute anything if the run latch is off
         if !memory.runLatchIsSet {
             _isRunning = false
             return
         }
-        
+
         let entryToExecute = currentInstructionEntry
         registers.ir = entryToExecute.value
         let value = registers.ir
         registers.pc += 1
-        
+
         // if interrupt to be dealt with, jump to appropriate stuff
-        if registers.priorityLevel < kKeyboardPriorityLevel && memory.KBSRIsSet && memory.KBIEIsSet {
+        if registers.priorityLevel < kKeyboardPriorityLevel, memory.KBSRIsSet, memory.KBIEIsSet {
             initiateInterrupt()
             return
         }
 
 //        print(value.instructionType)
 //        print(value)
-        switch (registers.ir.instructionType) {
+        switch registers.ir.instructionType {
         case .ADDR:
             registers[value.SR_DR] = registers[value.SR1] &+ registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
@@ -182,12 +184,13 @@ class Simulator {
             registers[value.SR_DR] = registers[value.SR1] & UInt16(bitPattern: value.sextImm5)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .BR:
-            if ((registers.cc == .N && value.N) || (registers.cc == .Z && value.Z) || (registers.cc == .P && value.P)) {
+            if (registers.cc == .N && value.N) || (registers.cc == .Z && value.Z) || (registers.cc == .P && value.P) {
                 registers.pc = registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)
             }
         case .JMP:
             registers.pc = registers[value.BaseR]
         case .JSR:
+            registers.r[7] = registers.pc
             registers.pc = registers.pc &+ UInt16(bitPattern: value.sextPCoffset11)
         case .JSRR:
             registers[7] = registers.pc
@@ -206,7 +209,7 @@ class Simulator {
             registers.setCC(basedOn: registers[value.SR_DR])
         case .NOT:
             // TODO: create computed property in Memory to perform getSR functionality done manually here
-            registers[value.SR_DR] = ~(registers[value.getBits(high: 8, low: 6)])
+            registers[value.SR_DR] = ~registers[value.getBits(high: 8, low: 6)]
             registers.setCC(basedOn: registers[value.SR_DR])
         case .RET:
             registers.pc = registers[7]
@@ -247,27 +250,26 @@ class Simulator {
 //        print("registers: \(registers.r)")
 
         // Update I/O stuff
-        if let consoleVC = consoleVC, (consoleVC.queueHasNext && !memory.KBSRIsSet) {
+        if let consoleVC = consoleVC, consoleVC.queueHasNext, !memory.KBSRIsSet {
             //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
             memory[Memory.KBDR].value = consoleVC.popFromQueue()!.toUInt16ASCII
             memory[Memory.KBSR].value.setBit(at: 15, to: 1)
         }
-        if (!memory.DSRIsSet) {
+        if !memory.DSRIsSet {
             // reset DSR if not set
             // can safely do b/c I always deal w/ input in DDR - see Memory for other side of this
             memory[Memory.DSR].value.setBit(at: 15, to: 1)
         }
-
     }
 
     typealias IndexUpdateFunction = (IndexSet) -> Void
-    
+
     // run until have returned to same level as started at?
     func stepOver(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
         var levelsDeep = 0
         var haveSteppedIn = false
-        
+
         repeat {
             executeNextInstruction()
             switch registers.ir.instructionType {
@@ -286,7 +288,7 @@ class Simulator {
                 break
             }
             print("new pc = \(registers.pc)")
-        } while (!currentInstructionEntry.shouldBreak && isRunning && (!haveSteppedIn || levelsDeep > 0));
+        } while !currentInstructionEntry.shouldBreak && isRunning && (!haveSteppedIn || levelsDeep > 0)
         print("done")
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
         _isRunning = false
@@ -305,12 +307,12 @@ class Simulator {
     func stepOut(finallyUpdateIndexes: IndexUpdateFunction) {
         _isRunning = true
         var haveSteppedOut = false
-        
+
         repeat {
             executeNextInstruction()
             haveSteppedOut = registers.ir.instructionType == .RET
-        } while (!currentInstructionEntry.shouldBreak && !haveSteppedOut);
-        
+        } while !currentInstructionEntry.shouldBreak && !haveSteppedOut
+
         _isRunning = false
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
     }
@@ -319,18 +321,17 @@ class Simulator {
         _isRunning = true
 
         executeNextInstruction()
-        while (!currentInstructionEntry.shouldBreak && isRunning) {
+        while !currentInstructionEntry.shouldBreak, isRunning {
             executeNextInstruction()
         }
 
         _isRunning = false
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
     }
-
 }
 
 extension Character {
     var toUInt16ASCII: UInt16 {
-        return UInt16(truncating: self.unicodeScalars.first!.value as NSNumber)
+        return UInt16(truncating: unicodeScalars.first!.value as NSNumber)
     }
 }

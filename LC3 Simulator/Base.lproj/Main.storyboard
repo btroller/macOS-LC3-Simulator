@@ -737,12 +737,12 @@
                         <value key="minSize" type="size" width="648" height="270"/>
                         <toolbar key="toolbar" implicitIdentifier="CFF992F0-13D7-4502-8261-708EDD813C8E" allowsUserCustomization="NO" displayMode="iconAndLabel" sizeMode="regular" id="X4T-wq-N9d">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="50EC06AD-BCC2-4047-8437-FF888918DBD5" label="Scroll To Address (hex)" paletteLabel="Scroll To Address (hex)" visibilityPriority="9001" id="C3P-Br-Hk5" userLabel="View Address Search Bar">
+                                <toolbarItem implicitItemIdentifier="50EC06AD-BCC2-4047-8437-FF888918DBD5" label="Scroll to Address (hex)" paletteLabel="Scroll to Address (hex)" visibilityPriority="9001" id="C3P-Br-Hk5" userLabel="View Address Search Bar">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="94" height="22"/>
                                     <size key="maxSize" width="140" height="22"/>
                                     <searchField key="view" wantsLayer="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" textCompletion="NO" id="SFS-b5-0oD">
-                                        <rect key="frame" x="18" y="14" width="94" height="22"/>
+                                        <rect key="frame" x="17" y="14" width="94" height="22"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <searchFieldCell key="cell" selectable="YES" editable="YES" borderStyle="bezel" placeholderString="Address" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="a7S-ZV-DNG">
                                             <font key="font" metaFont="system"/>
