@@ -47,12 +47,16 @@ class ConsoleViewController: NSViewController {
         }
     }
 
-    // TODO: only scroll to bottom if bottom was visible before character was added
     private func log(_ char: Character) {
-        DispatchQueue.main.async {
-//            if self.textView.visibleRect.contains(self.textView.rectForPage())
+        DispatchQueue.main.sync {
+            let shouldScroll = self.textView.visibleRect.maxY == self.textView.bounds.maxY
+                
             self.textView.string.append(char)
-//            self.textView.scrollToEndOfDocument(nil)
+            
+            // scrolls to the bottom of the text view if a new character is added iff the bottom of the view was already visible
+            if shouldScroll {
+                self.textView.scrollToEndOfDocument(nil)
+            }
         }
     }
 
