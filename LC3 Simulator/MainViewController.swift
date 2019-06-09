@@ -27,6 +27,7 @@
 // MAYBE: set selection indicator color to grey when simulator is running
 // MAYBE: make preference for having keyboard interrupts enabled by default
 // MAYBE: could have a spare simulator sitting around & queued up to replace the current one in case that's what takes time to reset it. Maybe it's just UI junk, though
+// MAYBE: make simulator window main window when breakpoint triggers
 
 // EVENTUALLY: consider changing scroll to PC icon
 // EVENTUALLY: disable ⌘F shortuct when the address search bar isn't in view. This doesn't currenlty break anything, but I'd guess it's misleading. Maybe make the search bar permanent somehow
@@ -572,7 +573,7 @@ extension MainViewController: NSTextFieldDelegate {
 
     // TODO: figure out why CCFormatter was causing errors when run previously. The return value seemed fine -- I think the autoreleasing pointer junk is what killed it
     func scanCCStringToCCType(_ string: String) -> Registers.CCType? {
-        switch string {
+        switch string.uppercased() {
         case "N":
             return .N
         case "Z":
@@ -652,7 +653,9 @@ extension MainViewController: NSTextFieldDelegate {
                         self.simulator.registers.pc = parsedString
                     }
                 }
-            } else if control === registersUI?.cc {
+            }
+            else if control === registersUI?.cc {
+                print("mark")
                 if let parsedCC = self.scanCCStringToCCType(fieldEditor.string) {
                     simulator.registers.cc = parsedCC
                     print("new cc of \(simulator.registers.cc)")
