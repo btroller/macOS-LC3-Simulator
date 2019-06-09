@@ -69,15 +69,13 @@ class Simulator {
 
     let modifiedMemoryLocationsTracker = IndexSetTracker()
 
-//    static let kFinishedRunningWithModifiedMemoryLocationsMessage = NSNotification.Name(rawValue: "finishedRunningWithModifedMemoryLocations")
-
     func setMainVC(to vc: MainViewController) {
         mainVC = vc
         memory.setMainVC(to: vc)
         registers.setMainVC(to: vc)
     }
 
-    // UNSURE: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
+    // NOTE: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
     var currentInstructionEntry: Memory.Entry {
         return memory[registers.pc]
     }
@@ -122,7 +120,7 @@ class Simulator {
     }
 
     // NOTE: ONLY FOR KEYBOARD INTERRUPTS (but there are no others)
-    // NOTE: not implemented exactly the way the book describes it, because the book doesn't do it in a sane way (as best I can tell). I update the stack pointer if necessary to point to the supervisor stack, store the PC and PSR, update the PSR to reflect that we're in supervisor mode and update the priority of the PSR, and finally jump to the service routine. Comment numbering appears as I copied it from the book, not in the order I choose to execute it.
+    // Comment numbering appears as I copied it from the book, not in the order I choose to execute it.
     func initiateInterrupt() {
         loadR6WithSSPIfNotAlreadyThere()
 
@@ -145,12 +143,8 @@ class Simulator {
         registers.pc = memory.getValue(at: expandedInterruptVector)
     }
 
-    // TODO: make parameter nil?
+    // execute instruction normally
     func executeNextInstruction() {
-        // execute instruction normally
-        // TODO: figure out why removing this print() makes console responsiveness plummet
-//        print("executing at \(String.init(format: "0x%04X", registers.pc))")
-
         // don't execute anything if the run latch is off
         if !memory.runLatchIsSet {
             _isRunning = false
@@ -168,8 +162,6 @@ class Simulator {
             return
         }
 
-//        print(value.instructionType)
-//        print(value)
         switch registers.ir.instructionType {
         case .ADDR:
             registers[value.SR_DR] = registers[value.SR1] &+ registers[value.SR2]
@@ -242,12 +234,7 @@ class Simulator {
         case .NOT_IMPLEMENTED:
             // trigger illegal opcode exception
             initiateException(withType: .illegalOpcode)
-//        default:
-//            print("didn't match instruction type in Simulator")
         }
-
-//        print(entryToExecute.value)
-//        print("registers: \(registers.r)")
 
         // Update I/O stuff
         if let consoleVC = consoleVC, consoleVC.queueHasNext, !memory.KBSRIsSet {
@@ -287,9 +274,7 @@ class Simulator {
             default:
                 break
             }
-            print("new pc = \(registers.pc)")
         } while !currentInstructionEntry.shouldBreak && isRunning && (!haveSteppedIn || levelsDeep > 0)
-        print("done")
         finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
         _isRunning = false
     }

@@ -19,7 +19,7 @@ class ConsoleViewController: NSViewController {
     }
 
     @IBAction func clearConsoleInputBufferClicked(with _: AnyObject) {
-        queue = ConsoleInputQueue<Character>()
+        queue = ConsoleInputQueue()
         updateInputQueueCountLabel()
     }
 
@@ -28,16 +28,14 @@ class ConsoleViewController: NSViewController {
     }
 
     func popFromQueue() -> Character? {
-        let ret = queue.pop()
-//        updateInputQueueCountLabel()
-        return ret
+        return queue.pop()
     }
 
     // TODO: make all pops decreate the no. of characters registered in the queue according to string
-    private var queue = ConsoleInputQueue<Character>()
+    private var queue = ConsoleInputQueue()
 
     func resetConsole() {
-        queue = ConsoleInputQueue<Character>()
+        queue = ConsoleInputQueue()
         textView.string = ""
         updateInputQueueCountLabel()
     }
@@ -49,16 +47,20 @@ class ConsoleViewController: NSViewController {
         }
     }
 
-    // EVENTUALLY: remove the unused log() function
-    private func log(_ string: String) {
-        DispatchQueue.main.async {
-            self.textView.string.append(string)
-        }
-    }
+//    // EVENTUALLY: remove the unused log() function
+//    private func log(_ string: String) {
+//        DispatchQueue.main.async {
+//            self.textView.string.append(string)
+//            self.textView.scrollToEndOfDocument(nil)
+//        }
+//    }
 
+    // TODO: only scroll to bottom if bottom was visible before character was added
     private func log(_ char: Character) {
         DispatchQueue.main.async {
+//            if self.textView.visibleRect.contains(self.textView.rectForPage())
             self.textView.string.append(char)
+//            self.textView.scrollToEndOfDocument(nil)
         }
     }
 
@@ -66,7 +68,7 @@ class ConsoleViewController: NSViewController {
 
     @objc private func logCharactersInNotification(_ notification: Notification) {
         if let characterToLog = notification.object as? Character {
-            log(characterToLog)
+            self.log(characterToLog)
         }
     }
 
@@ -91,23 +93,12 @@ class ConsoleViewController: NSViewController {
             if let mainVC = window.contentViewController as? MainViewController {
                 mainVC.setConsoleVC(to: self)
                 print("set consoleVC in main")
-                // needed to ...
-//                window.orderBack(self)
-//                window.resignKey()
-//                NSApp.mainWindow?.orderFront(self)
-//                NSApp.mainWindow?.makeKeyAndOrderFront(self)
-//                if let mainVC = NSApp.mainWindow?.contentViewController as? MainViewController {
-//                    print("worked")
-//                }
             } else {
                 preconditionFailure("failed to setConsoleVC")
             }
         }
 
         // use digits monospaced font
-        // EVENTUALLY: make a standard monospaced font at least a choice - can't bundle SF Mono due to license
-        //  and don't want to have inconsistent font in app
-//        textView.font = NSFont.monospacedDigitSystemFont(ofSize: (textView.font?.pointSize)!, weight: NSFont.Weight.regular)
         if let fontSize = textView.font?.pointSize, let font = NSFont.userFixedPitchFont(ofSize: fontSize) {
             textView.font = font
         }
@@ -125,10 +116,9 @@ class ConsoleViewController: NSViewController {
 extension ConsoleViewController: NSTextViewDelegate {
     // insert each ASCII character typed into the queue without altering the string in the NSTextView
     func textView(_: NSTextView, shouldChangeTextIn _: NSRange, replacementString: String?) -> Bool {
-        replacementString?.forEach { char in
-            if char.isASCII {
-                queue.push(char)
-//                updateInputQueueCountLabel()
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let replacementString = replacementString {
+                self.queue.push(replacementString)
             }
         }
 
