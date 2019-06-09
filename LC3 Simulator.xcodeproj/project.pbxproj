@@ -57,6 +57,7 @@
 		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
+		B5E142BB22AD954C006C8644 /* LC3 Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LC3 Simulator.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +110,7 @@
 		B51AC22D2175673B00132D60 /* LC3 Simulator */ = {
 			isa = PBXGroup;
 			children = (
+				B5E142BB22AD954C006C8644 /* LC3 Simulator.entitlements */,
 				B51AC22E2175673B00132D60 /* AppDelegate.swift */,
 				B58EA931222860A300A08D53 /* MainWindowController.swift */,
 				B51AC2302175673B00132D60 /* MainViewController.swift */,
@@ -201,6 +203,14 @@
 					B51AC22A2175673B00132D60 = {
 						CreatedOnToolsVersion = 10.0;
 						LastSwiftMigration = 1020;
+						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
 					};
 				};
 			};
@@ -477,6 +487,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "LC3 Simulator/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -498,6 +509,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "LC3 Simulator/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

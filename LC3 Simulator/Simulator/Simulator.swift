@@ -34,7 +34,7 @@ class Simulator {
     var registers = Registers()
     var memory = Memory()
     var mainVC: MainViewController?
-    // TODO: replace with reference to queue in ConsoleVC
+    // TODO: try replacing with reference to queue in ConsoleVC
     var consoleVC: ConsoleViewController? {
         return mainVC?.consoleVC
     }

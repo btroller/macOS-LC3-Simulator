@@ -653,8 +653,7 @@ extension MainViewController: NSTextFieldDelegate {
                         self.simulator.registers.pc = parsedString
                     }
                 }
-            }
-            else if control === registersUI?.cc {
+            } else if control === registersUI?.cc {
                 print("mark")
                 if let parsedCC = self.scanCCStringToCCType(fieldEditor.string) {
                     simulator.registers.cc = parsedCC

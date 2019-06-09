@@ -68,7 +68,7 @@ class ConsoleViewController: NSViewController {
 
     @objc private func logCharactersInNotification(_ notification: Notification) {
         if let characterToLog = notification.object as? Character {
-            self.log(characterToLog)
+            log(characterToLog)
         }
     }
 
