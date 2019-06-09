@@ -47,14 +47,6 @@ class ConsoleViewController: NSViewController {
         }
     }
 
-//    // EVENTUALLY: remove the unused log() function
-//    private func log(_ string: String) {
-//        DispatchQueue.main.async {
-//            self.textView.string.append(string)
-//            self.textView.scrollToEndOfDocument(nil)
-//        }
-//    }
-
     // TODO: only scroll to bottom if bottom was visible before character was added
     private func log(_ char: Character) {
         DispatchQueue.main.async {
@@ -70,12 +62,6 @@ class ConsoleViewController: NSViewController {
         if let characterToLog = notification.object as? Character {
             log(characterToLog)
         }
-    }
-
-    // called when Memory wants another character from the console
-    @objc private func receiveRequestForNextConcoleCharacter(_: Notification) {
-//        NotificationCenter.default.post(name: Memory.kReceiveNextConsoleCharacter, object: queue.pop())
-        updateInputQueueCountLabel()
     }
 
     static let kConsoleInputQueueCountChanged = Notification.Name("consoleInputQueueCountChanged")
@@ -104,8 +90,7 @@ class ConsoleViewController: NSViewController {
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: Memory.kLogCharacterMessageName, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(receiveRequestForNextConcoleCharacter), name: Memory.kRequestNextConsoleCharacter, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(receiveRequestForNextConcoleCharacter(_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(consoleInputQueueCountChanged (_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
 
         updateInputQueueCountLabel()
     }

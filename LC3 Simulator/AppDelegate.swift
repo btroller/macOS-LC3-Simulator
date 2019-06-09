@@ -10,21 +10,9 @@ import Cocoa
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-//    var consoleWindowController: NSWindowController!
-//
-//    func applicationDidFinishLaunching(_ aNotification: Notification) {
-//        let storyboard = NSStoryboard(name: "Main", bundle: nil)
-//
-//        if let vc = storyboard.instantiateController(withIdentifier: "consoleViewControllerID") as? ConsoleViewController {
-//            let consoleWindow = NSWindow(contentViewController: vc)
-//            consoleWindow.makeKeyAndOrderFront(self)
-//            consoleWindowController = NSWindowController(window: consoleWindow)
-//            consoleWindowController.showWindow(self)
-//        }
-//
-//    }
 
     func applicationWillTerminate(_: Notification) {
         // Insert code here to tear down your application
     }
+    
 }

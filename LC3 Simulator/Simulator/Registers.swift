@@ -12,30 +12,6 @@ import Foundation
 
 class Registers {
     var pc: UInt16 = 0x3000
-//    {
-//        didSet {
-//            DispatchQueue.main.async {
-//                self.mainVC?.pcChanged()
-//            }
-//        }
-//    }
-
-//    {
-//        // TODO: set up notifications instead of messing with view here
-//        willSet {
-//            DispatchQueue.main.async {
-//                let rowView = self.mainVC?.memoryTableView.rowView(atRow: Int(self.pc), makeIfNecessary: false)
-//                //            rowView.backgroundColor = .none
-//            }
-//        }
-//        didSet {
-//            DispatchQueue.main.async {
-//                let rowView = self.mainVC?.memoryTableView.rowView(atRow: Int(self.pc), makeIfNecessary: false)
-//                rowView?.backgroundColor = .systemGreen
-//            }
-//        }
-//    }
-
     var ir: UInt16 = 0x0000
     var psr: UInt16 = 0x8002 // set CC to N = 0, Z = 1, P = 0 and privilege mode to user
 

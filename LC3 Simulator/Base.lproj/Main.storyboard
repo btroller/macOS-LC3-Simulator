@@ -139,14 +139,20 @@
                                                 <action selector="setPCPressedWithSender:" target="Ady-hI-5gd" id="OeC-hF-ND8"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Toggle Breakpoint at Selected Row" keyEquivalent="b" identifier="toggleBreakpointMenuItemID" id="gnE-FL-Ldg">
+                                            <connections>
+                                                <action selector="toggleBreakpointClickedWithSender:" target="Ady-hI-5gd" id="vfg-gE-4tU"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="JEz-5d-eFY"/>
                                         <menuItem title="Scroll to PC" keyEquivalent="j" id="1v1-eV-oFK">
                                             <connections>
                                                 <action selector="scrollToPCClickedWithSender:" target="Ady-hI-5gd" id="jmy-bQ-H7j"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Toggle Breakpoint at Selected Row" keyEquivalent="b" identifier="toggleBreakpointMenuItemID" id="gnE-FL-Ldg">
+                                        <menuItem title="Search for Address" keyEquivalent="f" id="hMw-R5-jg6">
                                             <connections>
-                                                <action selector="toggleBreakpointClickedWithSender:" target="Ady-hI-5gd" id="vfg-gE-4tU"/>
+                                                <action selector="findMenuItemClickedWithSender:" target="Ady-hI-5gd" id="rgE-HW-PDr"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="HQx-u5-BDd"/>
@@ -158,11 +164,6 @@
                                         <menuItem title="Clear Console Input Buffer" keyEquivalent="K" id="8ab-X6-N08">
                                             <connections>
                                                 <action selector="clearConsoleInputBufferClickedWith:" target="Ady-hI-5gd" id="MkY-Sj-G0c"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Jump to PC" keyEquivalent="j" id="S0p-oC-mLd">
-                                            <connections>
-                                                <action selector="centerSelectionInVisibleArea:" target="Ady-hI-5gd" id="IOG-6D-g5B"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -280,7 +281,7 @@
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="RwZ-Va-z66"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="9GK-hj-Jwl"/>
-                                <toolbarItem implicitItemIdentifier="6E9DC73E-35CA-4AAF-8BD7-F4833827763F" explicitItemIdentifier="runToolbarItemID" label="Run" paletteLabel="Run" image="Run2" id="MtU-zi-Siu" userLabel="Run Program" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="6E9DC73E-35CA-4AAF-8BD7-F4833827763F" explicitItemIdentifier="runToolbarItemID" label="Run" paletteLabel="Run" image="Run2" id="MtU-zi-Siu" userLabel="Run Program" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -296,7 +297,7 @@
                                         <action selector="runClickedWithSender:" target="Oky-zY-oP4" id="rhq-O2-DBW"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="03CACB6F-7DBE-451C-ABFC-2DD2FF6299F8" explicitItemIdentifier="stepOutToolbarItemID" label="Step Out" paletteLabel="Step Out" image="StepOutIcon" id="hnN-GP-5bU" userLabel="Step Out" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="03CACB6F-7DBE-451C-ABFC-2DD2FF6299F8" explicitItemIdentifier="stepOutToolbarItemID" label="Step Out" paletteLabel="Step Out" image="StepOutIcon" id="hnN-GP-5bU" userLabel="Step Out" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -312,7 +313,7 @@
                                         <action selector="stepOutClickedWithSender:" target="Oky-zY-oP4" id="hI5-ko-WtP"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="4E8779AD-221E-4329-B45A-890A2A9EDC61" explicitItemIdentifier="stepInToolbarItemID" label="Step In" paletteLabel="Step In" image="StepInIcon" id="krH-gj-tct" userLabel="Step In" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="4E8779AD-221E-4329-B45A-890A2A9EDC61" explicitItemIdentifier="stepInToolbarItemID" label="Step In" paletteLabel="Step In" image="StepInIcon" id="krH-gj-tct" userLabel="Step In" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -328,7 +329,7 @@
                                         <action selector="stepInClickedWithSender:" target="Oky-zY-oP4" id="URi-x4-a16"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="64895348-576E-4072-9828-D9F9A35C71E0" explicitItemIdentifier="stepOverToolbarItemID" label="Step Over" paletteLabel="Step Over" image="StepOverIcon" id="roI-g5-7g5" userLabel="Step Over" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="64895348-576E-4072-9828-D9F9A35C71E0" explicitItemIdentifier="stepOverToolbarItemID" label="Step Over" paletteLabel="Step Over" image="StepOverIcon" id="roI-g5-7g5" userLabel="Step Over" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -344,7 +345,7 @@
                                         <action selector="stepOverClickedWithSender:" target="Oky-zY-oP4" id="KSl-Vu-y0u"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="6D98315A-5711-4FF7-B702-886BACAFFC68" explicitItemIdentifier="toggleBreakpointToolbarItemID" label="Set Breakpoint" paletteLabel="Set Breakpoint" image="SetBreakpointIcon" id="7VO-Vx-c1j" userLabel="Toggle Breakpoint" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="6D98315A-5711-4FF7-B702-886BACAFFC68" explicitItemIdentifier="toggleBreakpointToolbarItemID" label="Set Breakpoint" paletteLabel="Set Breakpoint" image="SetBreakpointIcon" id="7VO-Vx-c1j" userLabel="Toggle Breakpoint" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -360,7 +361,7 @@
                                         <action selector="toggleBreakpointClickedWithSender:" target="Oky-zY-oP4" id="TB3-hp-zSn"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="2E151BB5-1A61-49E5-A6F5-8B02B18EA477" explicitItemIdentifier="stopToolbarItemID" label="Stop" paletteLabel="Stop" image="StopIcon" id="STo-Yj-EQ1" userLabel="Stop" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="2E151BB5-1A61-49E5-A6F5-8B02B18EA477" explicitItemIdentifier="stopToolbarItemID" label="Stop" paletteLabel="Stop" image="StopIcon" id="STo-Yj-EQ1" userLabel="Stop" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>
@@ -376,7 +377,7 @@
                                         <action selector="stopClickedWithSender:" target="Oky-zY-oP4" id="bwK-Z3-kUv"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="7132E1BB-28FD-4AFD-8FBE-60D57F2EB54A" label="Scroll to PC" paletteLabel="Scroll to PC" image="ScrollToPCIcon" id="oPp-11-yrL" customClass="MyNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="7132E1BB-28FD-4AFD-8FBE-60D57F2EB54A" label="Scroll to PC" paletteLabel="Scroll to PC" image="ScrollToPCIcon" id="oPp-11-yrL" customClass="CustomNSToolbarItem" customModule="LC3_Simulator" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="37" height="20"/>
                                     <size key="maxSize" width="38" height="32"/>

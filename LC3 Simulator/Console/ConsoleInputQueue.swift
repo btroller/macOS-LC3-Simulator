@@ -9,7 +9,6 @@
 import Foundation
 
 // a first-in, first-out queue data structure for storing characters typed as input
-// generic for fun, but could just make of Character type
 class ConsoleInputQueue {
     private var queue: String = "" {
         didSet {

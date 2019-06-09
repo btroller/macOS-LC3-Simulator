@@ -25,8 +25,6 @@ class Memory {
     static let MCR: UInt16 = 0xFFFE
 
     static let kLogCharacterMessageName = Notification.Name("logCharacter")
-    static let kRequestNextConsoleCharacter = Notification.Name("requestNextConsoleCharacter")
-    static let kReceiveNextConsoleCharacter = Notification.Name("recieveNextConsoleCharacter")
 
     var mainVC: MainViewController! // NSApp.mainWindow?.contentViewController! as! MainViewController
 
@@ -213,12 +211,6 @@ class Memory {
         for (label, address) in LC3OS.osSymbols {
             entries[address].label = label
         }
-
-//        // set breakpoint at end of TRAP_HALT so it stops there by default
-//        let trapHaltRETIndex = 0xFD7C
-//        entries[trapHaltRETIndex].shouldBreak = true
-
-//        NotificationCenter.default.addObserver(self, selector: #selector(recieveNextCharacterToPalceInKBDR), name: Memory.kReceiveNextConsoleCharacter, object: nil)
     }
 
     // Loads multiple programs in
@@ -314,18 +306,6 @@ extension Memory {
         then(Int(row))
     }
 
-//    // TODO: remove reigstation to reciev notificaitonns for this function
-//    @objc func recieveNextCharacterToPalceInKBDR(_ notification : Notification) {
-//        if let char = notification.object as? Character {
-//            self[Memory.KBDR].value = char.toUInt16ASCII
-//            self[Memory.KBSR].value.setBit(at: 15, to: 1)
-//        }
-//        else {
-//            self[Memory.KBDR].value = 0
-//            self[Memory.KBSR].value.setBit(at: 15, to: 0)
-//        }
-//    }
-
     func getValue(at index: UInt16) -> UInt16 {
         let currentVal = self[index].value
 
@@ -349,24 +329,6 @@ extension UInt16 {
         assert(val == 0 || val == 1)
         self = (self & ~(1 << pos)) | (val << pos)
     }
-
-//    // WRONG as is
-//    mutating func setBits(high : Int, low : Int, to newVals: UInt16) {
-//        // make sure that only the bits
-//        assert(newVals.getBits(high: high, low: low) == 0)
-//    }
-
-//    var numSignificantBits : UInt16 {
-//        var numSigBits : UInt16 = 0
-//        var temp = self
-//        for _ in 0..<temp.bitWidth {
-//            if temp & 0x1 == 1 {
-//                numSigBits += 1
-//            }
-//            temp >>= 1
-//        }
-//        return numSigBits
-//    }
 
     var instructionType: Memory.Entry.InstructionType {
         let instructionBits = self >> 12
