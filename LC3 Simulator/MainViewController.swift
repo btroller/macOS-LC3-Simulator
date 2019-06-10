@@ -29,6 +29,7 @@
 // MAYBE: could have a spare simulator sitting around & queued up to replace the current one in case that's what takes time to reset it. Maybe it's just UI junk, though
 // MAYBE: make simulator window main window when breakpoint triggers
 
+// EVENTUALLY: try using optimizaion profile
 // EVENTUALLY: consider changing scroll to PC icon
 // EVENTUALLY: disable ⌘F shortuct when the address search bar isn't in view. This doesn't currenlty break anything, but I'd guess it's misleading. Maybe make the search bar permanent somehow
 // EVENTUALLY: could allow direct editing of instruction in right column, but would require parsing - essentially writing an assembly interpreter at that point, and might have to support labels and junk
@@ -714,6 +715,8 @@ extension MainViewController: NSMenuItemValidation, NSToolbarItemValidation {
             return shouldEnableControlWhichStartsSimulator
         case "stepOverMenuItemID":
             return shouldEnableControlWhichStartsSimulator
+        case "openFileMenuItemID":
+            return !simulator.isRunning
         default:
             return true
         }

@@ -8,7 +8,6 @@
 
 import Cocoa
 
-// TODO: allow for clearing of input buffer and clearing of output screen
 // TODO: figure out what to do about printing non-ASCII characters - compare to ouput of command-line and Windows simulators
 class ConsoleViewController: NSViewController {
     @IBOutlet private var textView: NSTextView!
@@ -50,9 +49,9 @@ class ConsoleViewController: NSViewController {
     private func log(_ char: Character) {
         DispatchQueue.main.sync {
             let shouldScroll = self.textView.visibleRect.maxY == self.textView.bounds.maxY
-                
+
             self.textView.string.append(char)
-            
+
             // scrolls to the bottom of the text view if a new character is added iff the bottom of the view was already visible
             if shouldScroll {
                 self.textView.scrollToEndOfDocument(nil)
@@ -94,7 +93,7 @@ class ConsoleViewController: NSViewController {
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: Memory.kLogCharacterMessageName, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(consoleInputQueueCountChanged (_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(consoleInputQueueCountChanged(_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
 
         updateInputQueueCountLabel()
     }
@@ -105,7 +104,7 @@ class ConsoleViewController: NSViewController {
 extension ConsoleViewController: NSTextViewDelegate {
     // insert each ASCII character typed into the queue without altering the string in the NSTextView
     func textView(_: NSTextView, shouldChangeTextIn _: NSRange, replacementString: String?) -> Bool {
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).sync {
             if let replacementString = replacementString {
                 self.queue.push(replacementString)
             }

@@ -90,7 +90,7 @@ class Memory {
             // remember the PC increment
             // TODO: maybe use &+ operator instead? won't get overflow this way if that's what I'm going for
             //   just left this comment as passing by, but this setup seems a bit weird
-            let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) + 1 + offset)
+            let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) &+ 1 &+ offset)
 
             return entries[Int(effectiveAddress)].label ?? "#\(offset)"
         }
@@ -163,7 +163,7 @@ class Memory {
             if let trapLabel = entries[Int(actualTrapAddress)].label {
                 return "TRAP \(trapLabel)"
             }
-            return "TRAP x\(val.zextTrapVect8)"
+            return "TRAP x\(String(val.zextTrapVect8, radix: 16))"
         case .NOT_IMPLEMENTED:
             return "RESERVED INSTRUCTION"
         }

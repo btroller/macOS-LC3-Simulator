@@ -57,7 +57,6 @@ class LC3SimulatorTests: XCTestCase {
         XCTAssert(simulator.registers.cc == .N)
     }
 
-    // TODO: also with SextImm5
     func testADDI() {
         let insns: [UInt16] = [
             0b1110_0000_0000_0000, // load 0x3001 into R0
