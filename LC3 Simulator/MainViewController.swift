@@ -8,7 +8,7 @@
 
 // TODO: thoroughly test Simulator
 // TODO: find any leaks -- Instruments fails to check for leaks when I start to open files
-// TODO: remove watching for and handlers for unused Notifications
+// TODO: make website for downloads
 
 // MAYBE: warn user when they load programs which overlap
 // MAYBE: add button to clear console in console window itself
@@ -213,7 +213,9 @@ class MainViewController: NSViewController {
     @IBAction func stepInClickedWithSender(_: AnyObject) {
         print("step clicked")
         memoryTableView.resetRowColorOf(row: Int(simulator.registers.pc))
-        simulator.stepIn(finallyUpdateIndexes: updateUIAfterSimulatorRun)
+        backgroundQueue.async {
+            self.simulator.stepIn(finallyUpdateIndexes: self.updateUIAfterSimulatorRun)
+        }
         updateRegistersAndToolbarUIEnabledness()
     }
 
