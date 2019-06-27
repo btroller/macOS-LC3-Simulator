@@ -9,6 +9,7 @@
 // TODO: thoroughly test Simulator
 // TODO: find any leaks -- Instruments fails to check for leaks when I start to open files
 // TODO: make website for downloads
+// TODO: always make room for scroll bar, no matter what's on the right side of the memory table view
 
 // MAYBE: warn user when they load programs which overlap
 // MAYBE: add button to clear console in console window itself
@@ -18,7 +19,6 @@
 // MAYBE: add list of previously-searched-for addresses
 // MAYBE: have preference for showing 'NOP' vs 'BR #0'
 // MAYBE: allow setting of memory to default values - ex. allows you to set 0x180 to point to the address of your intterupt. Approaches what Bellardo suggested in the way of creating memory snapshots which can be loaded, like custom OSs
-// MAYBE: allow editing of labels?
 // MAYBE: stop any editing sessions in the memory table view or registers when the simulator starts up - could send Notification from Simulator to main VC
 // MAYBE: maybe have different formatting in search bar to indicate it's a hex search
 // MAYBE: precompute instruction strings to make scrolling faster if necessary - could also do caching so they're only computed once?
@@ -37,7 +37,6 @@
 // EVENTUALLY: make preference for choosing an OS (maybe some provided ones and then they can also have custom ones)
 // EVENTUALLY: could have log of executed instructions w/ calculated values for debugging
 // EVENTUALLY: give list of previously searched for addresses in search bar
-// MAYBE EVENTUALLY: add preference for slow output printing to emphasize characters being outputted? Doesn't seem to useful to me.
 
 import Cocoa
 import Foundation
@@ -66,6 +65,7 @@ class MainViewController: NSViewController {
     let kAddressCellIdentifier: NSUserInterfaceItemIdentifier = "addressCellID"
     let kLabelColumnIdentifier: NSUserInterfaceItemIdentifier = "labelColumnID"
     let kLabelCellIdentifier: NSUserInterfaceItemIdentifier = "labelCellID"
+    let kLabelTextFieldIdentifier: NSUserInterfaceItemIdentifier = "labelTextFieldID"
     let kInstructionColumnIdentifier: NSUserInterfaceItemIdentifier = "instructionColumnID"
     let kInstructionCellIdentifier: NSUserInterfaceItemIdentifier = "instructionCellID"
 
@@ -330,6 +330,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         let breakpointColumnIndex = memoryTableView.column(withIdentifier: kStatusColumnIdentifier)
         let binaryValueColumnIndex = memoryTableView.column(withIdentifier: kValueBinaryColumnIdentifier)
         let hexValueColumnIndex = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
+        let labelColumnIndex = memoryTableView.column(withIdentifier: kLabelColumnIdentifier)
 
         switch memoryTableView.clickedColumn {
         case breakpointColumnIndex:
@@ -351,6 +352,16 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             let rowToEdit = memoryTableView.clickedRow
             let columnToEdit = memoryTableView.column(withIdentifier: kValueHexColumnIdentifier)
 
+            (memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
+            memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
+        case labelColumnIndex:
+            guard !simulator.isRunning else {
+                return
+            }
+            
+            let rowToEdit = memoryTableView.clickedRow
+            let columnToEdit = memoryTableView.column(withIdentifier: kLabelColumnIdentifier)
+            
             (memoryTableView.view(atColumn: columnToEdit, row: rowToEdit, makeIfNecessary: false) as? NSTableCellView)?.textField?.isEditable = true
             memoryTableView.editColumn(columnToEdit, row: rowToEdit, with: nil, select: false)
         default:
@@ -538,6 +549,13 @@ extension MainViewController: NSTextFieldDelegate {
             updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanHexStringToUInt16(_:))
         case kValueBinaryTextFieldIdentifier:
             updateMemoryTableView(control: control, fieldEditor: fieldEditor, scanner: scanBinaryStringToUInt16(_:))
+        case kLabelTextFieldIdentifier:
+            // reload all rows which somehow reference the modified one
+            DispatchQueue.main.async {
+                let rowBeingEdited = self.memoryTableView.row(for: control)
+                self.simulator.memory[UInt16(rowBeingEdited)].label = fieldEditor.string
+                self.memoryTableView.reloadData()
+            }
         default:
             // a text field from the registers
             // TODO: clean up, put in switch statement

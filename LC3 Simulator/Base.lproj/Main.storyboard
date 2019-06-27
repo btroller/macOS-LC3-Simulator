@@ -1185,7 +1185,7 @@
                                                         </tableCellView>
                                                     </prototypeCellViews>
                                                 </tableColumn>
-                                                <tableColumn identifier="labelColumnID" editable="NO" width="119" minWidth="40" maxWidth="1000" id="ekX-02-yiI">
+                                                <tableColumn identifier="labelColumnID" width="119" minWidth="40" maxWidth="1000" id="ekX-02-yiI">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Label">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -1202,13 +1202,16 @@
                                                             <rect key="frame" x="304" y="1" width="119" height="2"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
-                                                                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qbh-8P-iEZ">
+                                                                <textField identifier="labelTextFieldID" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qbh-8P-iEZ">
                                                                     <rect key="frame" x="0.0" y="-17" width="123" height="19"/>
-                                                                    <textFieldCell key="cell" truncatesLastVisibleLine="YES" sendsActionOnEndEditing="YES" alignment="left" title="Table View Cell" id="hKB-VB-bSd">
+                                                                    <textFieldCell key="cell" lineBreakMode="truncatingTail" truncatesLastVisibleLine="YES" sendsActionOnEndEditing="YES" alignment="left" title="Table View Cell" id="hKB-VB-bSd">
                                                                         <font key="font" size="13" name="Menlo-Regular"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
+                                                                    <connections>
+                                                                        <outlet property="delegate" destination="XfG-lQ-9wD" id="EGw-Iq-rSo"/>
+                                                                    </connections>
                                                                 </textField>
                                                             </subviews>
                                                             <constraints>
