@@ -167,37 +167,37 @@ class Simulator {
             registers[value.SR_DR] = registers[value.SR1] &+ registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
         case .ADDI:
-            registers[value.SR_DR] = registers[value.SR1] &+ UInt16(bitPattern: value.sextImm5)
+            registers[value.SR_DR] = registers[value.SR1] &+ value.sextImm5
             registers.setCC(basedOn: registers[value.SR_DR])
         case .ANDR:
             registers[value.SR_DR] = registers[value.SR1] & registers[value.SR2]
             registers.setCC(basedOn: registers[value.SR_DR])
         case .ANDI:
-            registers[value.SR_DR] = registers[value.SR1] & UInt16(bitPattern: value.sextImm5)
+            registers[value.SR_DR] = registers[value.SR1] & value.sextImm5
             registers.setCC(basedOn: registers[value.SR_DR])
         case .BR:
             if (registers.cc == .N && value.N) || (registers.cc == .Z && value.Z) || (registers.cc == .P && value.P) {
-                registers.pc = registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)
+                registers.pc = registers.pc &+ value.sextPCoffset9
             }
         case .JMP:
             registers.pc = registers[value.BaseR]
         case .JSR:
             registers.r[7] = registers.pc
-            registers.pc = registers.pc &+ UInt16(bitPattern: value.sextPCoffset11)
+            registers.pc = registers.pc &+ value.sextPCoffset11
         case .JSRR:
             registers[7] = registers.pc
             registers.pc = registers[value.BaseR]
         case .LD:
-            registers[value.SR_DR] = memory.getValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9))
+            registers[value.SR_DR] = memory.getValue(at: registers.pc &+ value.sextPCoffset9)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDI:
-            registers[value.SR_DR] = memory.getValue(at: memory.getValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)))
+            registers[value.SR_DR] = memory.getValue(at: memory.getValue(at: registers.pc &+ value.sextPCoffset9))
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDR:
-            registers[value.SR_DR] = memory.getValue(at: registers[value.BaseR] &+ UInt16(bitPattern: value.sextOffset6))
+            registers[value.SR_DR] = memory.getValue(at: registers[value.BaseR] &+ value.sextOffset6)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LEA:
-            registers[value.SR_DR] = registers.pc &+ UInt16(bitPattern: value.sextPCoffset9)
+            registers[value.SR_DR] = registers.pc &+ value.sextPCoffset9
             registers.setCC(basedOn: registers[value.SR_DR])
         case .NOT:
             // TODO: create computed property in Memory to perform getSR functionality done manually here
@@ -221,13 +221,13 @@ class Simulator {
                 initiateException(withType: .privilegeModeViolation)
             }
         case .ST:
-            memory.setValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9), to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
+            memory.setValue(at: registers.pc &+ value.sextPCoffset9, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .STI:
-            let effectiveAddress = memory.getValue(at: registers.pc &+ UInt16(bitPattern: value.sextPCoffset9))
+            let effectiveAddress = memory.getValue(at: registers.pc &+ value.sextPCoffset9)
 //            print(effectiveAddress)
             memory.setValue(at: effectiveAddress, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .STR:
-            memory.setValue(at: registers[value.BaseR] &+ UInt16(bitPattern: value.sextOffset6), to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
+            memory.setValue(at: registers[value.BaseR] &+ value.sextOffset6, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .TRAP:
             registers[7] = registers.pc
             registers.pc = memory.getValue(at: value.trapVect8)

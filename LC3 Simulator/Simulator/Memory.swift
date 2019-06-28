@@ -127,25 +127,25 @@ class Memory {
                 branchStr.append("p")
             }
             branchStr.append(String(repeating: " ", count: 6 - branchStr.count))
-            branchStr.append(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9)) //  "#\(val.sextPCoffset9)")
+            branchStr.append(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))
             return branchStr
         case .JMP:
             return "JMP R\(val.BaseR)"
         // TODO: use labels when available
         case .JSR:
-            return "JSR \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset11))" // "#\(val.sextPCoffset11)"
+            return "JSR \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset11)))"
         // TODO: test from here on down in function
         case .JSRR:
             // TODO: test
             return "JSRR R\(val.BaseR)"
         case .LD:
-            return "LD R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))" // #\(val.sextPCoffset9)"
+            return "LD R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
         case .LDI:
-            return "LDI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))" // #\(val.sextPCoffset9)"
+            return "LDI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
         case .LDR:
             return "LDR R\(val.SR_DR), R\(val.BaseR), #\(val.sextOffset6)"
         case .LEA:
-            return "LEA R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))" // #\(val.sextPCoffset9)"
+            return "LEA R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
         case .NOT:
             return "NOT R\(val.SR_DR), R\(val.getBits(high: 8, low: 6))"
         case .RET:
@@ -153,9 +153,9 @@ class Memory {
         case .RTI:
             return "RTI"
         case .ST:
-            return "ST R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))" // #\(val.sextPCoffset9)"
+            return "ST R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
         case .STI:
-            return "STI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))" // #\(val.sextPCoffset9)"
+            return "STI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
         case .STR:
             return "STR R\(val.SR_DR), R\(val.BaseR), #\(val.sextOffset6)"
         case .TRAP:
@@ -391,14 +391,18 @@ extension UInt16 {
     var imm5: UInt16 {
         return getBits(high: 4, low: 0)
     }
-
-    // NOTE: returns a signed result to make displaying and working with easier
-    var sextImm5: Int16 {
-        if imm5.getBit(at: 4) == 1 {
-            return Int16(bitPattern: imm5 | 0b1111_1111_1111_0000)
+    
+    func sext(sextBitIndex: Int) -> UInt16 {
+        if self.getBit(at: sextBitIndex) == 1 {
+            return (0b1111_1111_1111_1111 << sextBitIndex) | self
         } else {
-            return Int16(imm5)
+            return self
         }
+    }
+    
+    // NOTE: returns a signed result to make displaying and working with easier
+    var sextImm5: UInt16 {
+        return imm5.sext(sextBitIndex: 4)
     }
 
     // NOTE: I called it SR_DR because it's sometimes SR and sometimes DR
@@ -418,24 +422,16 @@ extension UInt16 {
         return getBits(high: 8, low: 0)
     }
 
-    var sextPCoffset9: Int16 {
-        if PCoffset9.getBit(at: 8) == 1 {
-            return Int16(bitPattern: PCoffset9 | 0b1111_1110_0000_0000)
-        } else {
-            return Int16(PCoffset9)
-        }
+    var sextPCoffset9: UInt16 {
+        return PCoffset9.sext(sextBitIndex: 8)
     }
 
     var PCoffset11: UInt16 {
         return getBits(high: 10, low: 0)
     }
 
-    var sextPCoffset11: Int16 {
-        if PCoffset11.getBit(at: 10) == 1 {
-            return Int16(bitPattern: PCoffset11 | 0b1111_1000_0000_0000)
-        } else {
-            return Int16(PCoffset11)
-        }
+    var sextPCoffset11: UInt16 {
+        return PCoffset11.sext(sextBitIndex: 10)
     }
 
     var BaseR: UInt16 {
@@ -446,12 +442,8 @@ extension UInt16 {
         return getBits(high: 5, low: 0)
     }
 
-    var sextOffset6: Int16 {
-        if offset6.getBit(at: 5) == 1 {
-            return Int16(bitPattern: offset6 | 0b1111_1111_1100_0000)
-        } else {
-            return Int16(offset6)
-        }
+    var sextOffset6: UInt16 {
+        return offset6.sext(sextBitIndex: 5)
     }
 
     var trapVect8: UInt16 {

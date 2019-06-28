@@ -11,6 +11,8 @@
 // TODO: make website for downloads
 // TODO: always make room for scroll bar, no matter what's on the right side of the memory table view
 
+// MAYBE: make memory labels editable while simulator is running
+// MAYBE: remove index set tracker and just reload all of memory instead -- could make much simpler
 // MAYBE: warn user when they load programs which overlap
 // MAYBE: add button to clear console in console window itself
 // MAYBE: disable text formatting options for text field in console window
@@ -42,8 +44,7 @@ import Cocoa
 import Foundation
 
 class MainViewController: NSViewController {
-//    var rowBeingEdited: Int?
-
+    
     // MARK: Constants
 
     let kStatusNoneImage = NSImage(imageLiteralResourceName: NSImage.statusNoneName)
