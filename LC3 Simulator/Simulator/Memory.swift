@@ -9,6 +9,7 @@
 // TODO: on write to memory, check if messing w/ kbsr and kbdr
 // TODO: see if writing to kbsr and dsr is allowed
 // TODO: check what should happen on read from KBDR - should it 0 out?
+// MAYBE: only show files if they can be successfully read into memory?
 
 // Preference: whether to automatically load in symbol files
 
@@ -219,26 +220,45 @@ class Memory {
             loadProgramFromFile(at: url, then: reloadTableViewRowsInSet)
         }
     }
-
+    
+    func showAlert(fileName: String) {
+        enum LoadError: Error {
+            case error
+        }
+        
+        let alert = NSAlert(error: LoadError.error)
+        alert.messageText = "Failed to load file \(fileName)"
+        alert.runModal()
+    }
+    
     // TODO: deal with bad data gracefully, probably display error dialogue
     // Loads in a single program
     func loadProgramFromFile(at url: URL, then reloadTableViewRowsInSet: (IndexSet) -> Void) {
-        let fileData = NSData(contentsOf: url)!
-        guard fileData.length % 2 == 0 else { print("uneven length input file"); return }
+        guard let fileData = NSData(contentsOf: url) else {
+            showAlert(fileName: url.relativePath)
+            return
+        }
+        guard fileData.length % 2 == 0 else {
+            print("uneven length input file")
+            showAlert(fileName: url.relativePath)
+            return
+        }
         let numUInt16sInFile = fileData.length / 2
         print("numUInt16sInFile = \(numUInt16sInFile)")
         let dataRange = NSRange(location: 0, length: fileData.length)
         var bigEndienValues = [UInt16].init(repeating: 0, count: numUInt16sInFile)
         fileData.getBytes(&bigEndienValues, range: dataRange)
 
-        guard bigEndienValues.count > 0 else { return }
-
+        guard bigEndienValues.count > 0 else {
+            showAlert(fileName: url.relativePath)
+            return
+        }
         print(bigEndienValues)
 
         let values: [UInt16] = bigEndienValues.map { CFSwapInt16($0) }
 
         let orig = Int(values[0])
-        print("orig = " + String(format: "%04X", orig))
+        print("orig = \(String(format: "%04X", orig))")
         // get rid of origin, the first 16 bits (aka first UInt16) of the file
         let programData = values[1...]
 
@@ -264,6 +284,10 @@ class Memory {
             // get each line of symbol file with
             let symFileLines = symFileContents.components(separatedBy: .newlines)[4...]
             for line in symFileLines {
+                guard line.count > 0 else {
+                    // final line of file is empty
+                    return
+                }
                 print(line)
                 var label: NSString?
                 var addressStr: NSString?
@@ -271,15 +295,25 @@ class Memory {
                 // ignore `/` characters at beginning of line
                 let charsToSkip = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/"))
                 scanner.charactersToBeSkipped = charsToSkip
-                guard scanner.scanUpToCharacters(from: charsToSkip, into: &label) == true, label != nil else { return }
-                guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true, addressStr != nil else { return }
-                guard let address = UInt16(addressStr! as String, radix: 16) else { return }
+                guard scanner.scanUpToCharacters(from: charsToSkip, into: &label) == true, label != nil else {
+                    showAlert(fileName: symURL.relativePath)
+                    return
+                }
+                guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true, addressStr != nil else {
+                    showAlert(fileName: symURL.relativePath)
+                    return
+                }
+                guard let address = UInt16(addressStr! as String, radix: 16) else {
+                    showAlert(fileName: symURL.relativePath)
+                    return
+                }
                 entries[Int(address)].label = label as String?
                 // add the entries with labels attached to modifiedMemoryLocations in case a label is added for an address not in the program itself
                 modifiedMemoryLocations.insert(Int(address))
                 print("new label: \(String(describing: label)) at address: \(address)")
             }
         } catch {
+            showAlert(fileName: symURL.relativePath)
             print("Failed to open matching symbol file with error: \(error)")
             return
         }
