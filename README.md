@@ -1,6 +1,6 @@
 #  macOS LC-3 Simulator
 
-This is a native Swift and Cocoa-based implementation of an LC-3 simulator for macOS 11.
+This is a native Swift and Cocoa implementation of an LC-3 simulator for macOS 11.
 
 ## Structure
 
