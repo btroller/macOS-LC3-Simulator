@@ -55,7 +55,6 @@
 		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
-		B5AFC8F6258B3859004943B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = "LC3 Simulator/README.md"; sourceTree = "<group>"; };
 		B5E142BB22AD954C006C8644 /* LC3 Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LC3 Simulator.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -90,7 +89,6 @@
 		B51AC2222175673B00132D60 = {
 			isa = PBXGroup;
 			children = (
-				B5AFC8F6258B3859004943B2 /* README.md */,
 				B51AC22D2175673B00132D60 /* LC3 Simulator */,
 				B510E9952225214C007EFA75 /* LC3 SimulatorTests */,
 				B51AC22C2175673B00132D60 /* Products */,
