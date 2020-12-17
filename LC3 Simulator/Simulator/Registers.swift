@@ -10,10 +10,10 @@ import Foundation
 
 // TODO: somehow notify MainViewController of changed PC after finished running
 
-class Registers {
-    var pc: UInt16 = 0x3000
-    var ir: UInt16 = 0x0000
-    var psr: UInt16 = 0x8002 // set CC to N = 0, Z = 1, P = 0 and privilege mode to user
+struct Registers {
+    var pc:  UInt16 = 0x3000
+    var ir:  UInt16 = 0x0000
+    var psr: UInt16 = 0x8002 // Sets CC to N = 0, Z = 1, P = 0 and privilege mode to user.
 
     enum CCType: String {
         case N
@@ -24,13 +24,14 @@ class Registers {
 
     var cc: CCType {
         get {
-            if N, !Z, !P {
+            switch (N, Z, P) {
+            case (true, false, false):
                 return .N
-            } else if !N, Z, !P {
+            case (false, true, false):
                 return .Z
-            } else if !N, !Z, P {
+            case (false, false, true):
                 return .P
-            } else {
+            default:
                 return .Invalid
             }
         }
@@ -85,15 +86,9 @@ class Registers {
     }
 
     var r: [UInt16] = [UInt16].init(repeating: 0, count: 8)
-    // see book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
+    // See book page 260 for rundown of these. They bascially just store the unused stack pointer when a permission level changes, which is used to restore it later
     var savedSSP: UInt16 = 0x2FFF // at 0x2FFF and not 0x3000 b/c the label for SS_START will now appear outside of user memory. Possibly a bit confusing, though.
     var savedUSP: UInt16 = 0
-
-    var mainVC: MainViewController?
-
-    func setMainVC(to vc: MainViewController) {
-        mainVC = vc
-    }
 
     enum PrivilegeMode {
         case Supervisor
@@ -123,50 +118,35 @@ class Registers {
             return psr.getBits(high: 10, low: 8)
         }
         set {
-            // NOTE: assumes that bits to replace with are in lowest 3 bits of passed in UInt16
-            psr.setBit(at: 8, to: newValue.getBit(at: 0))
-            psr.setBit(at: 9, to: newValue.getBit(at: 1))
+            // Assumes that bits to replace with are in only the lowest 3 bits of the passed-in UInt16.
+            assert(newValue & 0b1111_1111_1111_1000 == 0)
+            
+            psr.setBit(at:  8, to: newValue.getBit(at: 0))
+            psr.setBit(at:  9, to: newValue.getBit(at: 1))
             psr.setBit(at: 10, to: newValue.getBit(at: 2))
         }
     }
 
     subscript(index: UInt16) -> UInt16 {
         get {
-            precondition(0 ... 7 ~= index, "Attempt to access illegal register no. \(index)")
-
             return r[Int(index)]
         }
         // NOTE: sets only the value of the memory entry
         set {
-            precondition(0 ... 7 ~= index, "Attempt to access illegal register no. \(index)")
-
             r[Int(index)] = newValue
         }
     }
 
-    func setCC(basedOn value: UInt16) {
+    mutating func setCC(basedOn value: UInt16) {
         let signedValue = Int16(bitPattern: value)
+        
         if signedValue < 0 {
             N = true
-        } else if value == 0 {
+        } else if signedValue == 0 {
             Z = true
         } else {
             P = true
         }
     }
 
-    // Could use scheme like this to access each register individually and safely, but will take more room
-    // definitely convenient to have an array for main registers
-//    var r0 : UInt16 {
-//        get {
-//            return r[0]
-//        }
-//        set {
-//            r[0] = newValue
-//        }
-//    }
-
-//    override init() {
-//        super.init()
-//    }
 }

@@ -19,7 +19,6 @@
 		B532AECC21C8BAEC00A5281C /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B532AECB21C8BAEC00A5281C /* Registers.swift */; };
 		B532AECE21C8BCC900A5281C /* Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B532AECD21C8BCC900A5281C /* Memory.swift */; };
 		B5624F9621C2E9F900B179AA /* Simulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5624F9521C2E9F900B179AA /* Simulator.swift */; };
-		B58EA930222852F700A08D53 /* lc3web-gh-pages in Resources */ = {isa = PBXBuildFile; fileRef = B58EA92F222852F700A08D53 /* lc3web-gh-pages */; };
 		B58EA932222860A300A08D53 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58EA931222860A300A08D53 /* MainWindowController.swift */; };
 		B58EA9342228E89100A08D53 /* Number Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58EA9332228E89100A08D53 /* Number Formatters.swift */; };
 		B5A36AE721FD9503002F7A86 /* lc3OS.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A36AE621FD9503002F7A86 /* lc3OS.swift */; };
@@ -53,10 +52,10 @@
 		B532AECB21C8BAEC00A5281C /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 		B532AECD21C8BCC900A5281C /* Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memory.swift; sourceTree = "<group>"; };
 		B5624F9521C2E9F900B179AA /* Simulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Simulator.swift; sourceTree = "<group>"; };
-		B58EA92F222852F700A08D53 /* lc3web-gh-pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "lc3web-gh-pages"; path = "../../../Downloads/lc3web-gh-pages"; sourceTree = "<group>"; };
 		B58EA931222860A300A08D53 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		B58EA9332228E89100A08D53 /* Number Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Number Formatters.swift"; sourceTree = "<group>"; };
 		B5A36AE621FD9503002F7A86 /* lc3OS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lc3OS.swift; sourceTree = "<group>"; };
+		B5AFC8F6258B3859004943B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = "LC3 Simulator/README.md"; sourceTree = "<group>"; };
 		B5E142BB22AD954C006C8644 /* LC3 Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LC3 Simulator.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -91,10 +90,10 @@
 		B51AC2222175673B00132D60 = {
 			isa = PBXGroup;
 			children = (
+				B5AFC8F6258B3859004943B2 /* README.md */,
 				B51AC22D2175673B00132D60 /* LC3 Simulator */,
 				B510E9952225214C007EFA75 /* LC3 SimulatorTests */,
 				B51AC22C2175673B00132D60 /* Products */,
-				B58EA92F222852F700A08D53 /* lc3web-gh-pages */,
 			);
 			sourceTree = "<group>";
 		};
@@ -192,7 +191,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Benjamin Troller";
 				TargetAttributes = {
 					B510E9932225214C007EFA75 = {
@@ -245,7 +244,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B58EA930222852F700A08D53 /* lc3web-gh-pages in Resources */,
 				B51AC2332175673C00132D60 /* Assets.xcassets in Resources */,
 				B51AC2362175673C00132D60 /* Main.storyboard in Resources */,
 			);
@@ -327,6 +325,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
@@ -347,6 +346,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
@@ -389,13 +389,14 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Mac Developer: bctroller@gmail.com (8M8CGF24KQ)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -414,13 +415,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -450,13 +452,14 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Mac Developer: bctroller@gmail.com (8M8CGF24KQ)";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -469,12 +472,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -484,6 +488,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
@@ -493,6 +498,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bentroller.LC3Simulator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -506,6 +512,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 37BM98M5W6;
@@ -515,6 +522,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bentroller.LC3Simulator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

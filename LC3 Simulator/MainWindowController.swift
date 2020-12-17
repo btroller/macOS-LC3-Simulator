@@ -9,22 +9,19 @@
 import Cocoa
 
 class MainWindowController: NSWindowController, NSWindowDelegate {
-    @IBOutlet var addressSearchField: NSSearchField!
+    @IBOutlet var addressSearchField:   NSSearchField!
     @IBOutlet var addressSearchBarItem: NSToolbarItem!
-
-    // close app when simulator's close button is pressed
+    
+    // Close the app when the main window is closed.
     func windowShouldClose(_: NSWindow) -> Bool {
         NSApp.terminate(self)
         return true
     }
 }
 
-// MARK: make address search field the first responder after menu "find" item clicked
-
+// Allow MainViewController to make the search field the first responder.
 extension MainWindowController {
     func makeAddressSearchFieldFirstResponder() {
-        DispatchQueue.main.async {
-            self.window?.makeFirstResponder(self.addressSearchField)
-        }
+        self.window?.makeFirstResponder(self.addressSearchField)
     }
 }

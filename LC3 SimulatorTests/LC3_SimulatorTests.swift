@@ -7,20 +7,12 @@
 //
 
 // TODO: add CC checks where applicable
-// TODO: test for exceptions and interrupts
+// TODO: test exceptions and interrupts
 
 @testable import LC3_Simulator
 import XCTest
 
 class LC3SimulatorTests: XCTestCase {
-    override func setUp() {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
     // NOTE: this
     func execute(instructions: [UInt16], in simulator: Simulator = Simulator()) -> Simulator {
 //        let simulator = Simulator()

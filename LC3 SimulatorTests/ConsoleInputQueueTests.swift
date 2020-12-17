@@ -10,7 +10,7 @@
 import XCTest
 
 class ConsoleInputQueueTests: XCTestCase {
-    var queue: ConsoleInputQueue = ConsoleInputQueue()
+    var queue: ConsoleInputQueue = ConsoleInputQueue(dispatchQueue: DispatchQueue.global(qos: .userInitiated))
 
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -22,21 +22,22 @@ class ConsoleInputQueueTests: XCTestCase {
 
     func testQueue() {
         queue.push("a")
-        XCTAssert(queue.hasNext && queue.pop() == "a")
+        XCTAssert( queue.hasNext && queue.pop() == "a")
         queue.push("a")
         queue.push("b")
         queue.push("c")
-        XCTAssert(queue.hasNext && queue.pop() == "a")
-        XCTAssert(queue.hasNext && queue.pop() == "b")
-        XCTAssert(queue.hasNext && queue.pop() == "c")
+        XCTAssert( queue.hasNext && queue.pop() == "a")
+        XCTAssert( queue.hasNext && queue.pop() == "b")
+        XCTAssert( queue.hasNext && queue.pop() == "c")
         XCTAssert(!queue.hasNext && queue.pop() == nil)
         queue.push("a")
         queue.push("c")
         queue.push("b")
         queue.push("d")
-        XCTAssert(queue.hasNext && queue.pop() == "a")
-        XCTAssert(queue.hasNext && queue.pop() == "c")
-        XCTAssert(queue.hasNext && queue.pop() == "b")
-        XCTAssert(queue.hasNext && queue.pop() == "d")
+        XCTAssert( queue.hasNext && queue.pop() == "a")
+        XCTAssert( queue.hasNext && queue.pop() == "c")
+        XCTAssert( queue.hasNext && queue.pop() == "b")
+        XCTAssert( queue.hasNext && queue.pop() == "d")
+        XCTAssert(!queue.hasNext && queue.pop() == nil)
     }
 }

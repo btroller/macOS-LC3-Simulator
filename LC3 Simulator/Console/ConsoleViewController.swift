@@ -8,94 +8,85 @@
 
 import Cocoa
 
-// TODO: figure out what to do about printing non-ASCII characters - compare to ouput of command-line and Windows simulators
+// TODO: figure out what to do about printing non-ASCII characters. Probably compare to ouput of command-line and Windows simulators.
 class ConsoleViewController: NSViewController {
-    @IBOutlet private var textView: NSTextView!
-    @IBOutlet var consoleInputQueueCountLabel: NSTextField!
+    
+    // MARK: Notification name constants
+    
+    static let kShouldReset                   = Notification.Name("resetConsoleNotificationName")
+    static let kNewStringTyped                = Notification.Name("newStringTypedNotificationName")
+    static let kClearConsoleInputClicked      = Notification.Name("clearConsoleInputClickedNotificationName")
+    static let kConsoleInputQueueCountChanged = Notification.Name("consoleInputQueueCountChanged")
+    
+    // MARK: IBOutlets
+    
+    @IBOutlet private var textView:                    NSTextView!
+    @IBOutlet private var consoleInputQueueCountLabel: NSTextField!
 
+    // MARK: IBActions
+    
     @IBAction func clearConsoleDisplayClicked(with _: AnyObject) {
         textView.string = ""
+        self.numCharsInTextView = 0
     }
-
+    
     @IBAction func clearConsoleInputBufferClicked(with _: AnyObject) {
-        queue = ConsoleInputQueue()
-        updateInputQueueCountLabel()
+        NotificationCenter.default.post(name: ConsoleViewController.kClearConsoleInputClicked, object: nil)
     }
 
-    var queueHasNext: Bool {
-        return queue.hasNext
-    }
-
-    func popFromQueue() -> Character? {
-        return queue.pop()
-    }
-
-    // TODO: make all pops decreate the no. of characters registered in the queue according to string
-    private var queue = ConsoleInputQueue()
-
-    func resetConsole() {
-        queue = ConsoleInputQueue()
+    // MARK: Notification handlers
+    
+    @objc func shouldResetConsole(_ notification: Notification) {
         textView.string = ""
-        updateInputQueueCountLabel()
+        self.numCharsInTextView = 0
     }
-
-    func updateInputQueueCountLabel() {
-        let newString = "\(queue.count) buffered characters"
+    
+    @objc func consoleInputQueueCountChanged(_ notification: Notification) {
+        guard let newCount = notification.userInfo?["newCount"] as? Int else { preconditionFailure() }
+        
         DispatchQueue.main.async {
-            self.consoleInputQueueCountLabel.stringValue = newString
+            self.consoleInputQueueCountLabel.stringValue = "\(newCount) buffered character\(newCount == 1 ? "" : "s")"
         }
     }
-
-    private func log(_ char: Character) {
-        DispatchQueue.main.sync {
-            let shouldScroll = self.textView.visibleRect.maxY == self.textView.bounds.maxY
-
-            self.textView.string.append(char)
-
-            // scrolls to the bottom of the text view if a new character is added iff the bottom of the view was already visible
-            if shouldScroll {
-                self.textView.scrollToEndOfDocument(nil)
-            }
-        }
-    }
-
-    // MARK: methods dealing with notifications
-
+    
+    var numCharsInTextView = 0
     @objc private func logCharactersInNotification(_ notification: Notification) {
-        if let characterToLog = notification.object as? Character {
-            log(characterToLog)
+        guard let characterToLog = notification.object as? Character else {
+            preconditionFailure()
+        }
+        
+        DispatchQueue.main.async {
+
+            let oldMaxY       = self.textView.bounds.maxY
+            let wasNearBottom = oldMaxY - self.textView.visibleRect.maxY <= 20
+
+            self.textView.replaceCharacters(in: NSMakeRange(self.numCharsInTextView, 0), with: String(characterToLog))
+
+            // Scrolls to the bottom of the text view if a new character is added if the bottom of the view was already visible.
+            if wasNearBottom/*, oldMaxY < self.textView.bounds.maxY*/ {
+                self.textView.scrollRangeToVisible(NSRange(location: self.numCharsInTextView, length: 0))
+            }
+            
+            self.numCharsInTextView += 1
         }
     }
-
-    static let kConsoleInputQueueCountChanged = Notification.Name("consoleInputQueueCountChanged")
-
-    // called when Memory wants another character from the console
-    @objc private func consoleInputQueueCountChanged(_: Notification) {
-        updateInputQueueCountLabel()
-    }
-
+    
+    // MARK: Class methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // a stupid and hacky way of getting ahold of the main view controller before NSApp.mainWindow is set
-        for window in NSApp.windows where window.contentViewController !== self {
-            if let mainVC = window.contentViewController as? MainViewController {
-                mainVC.setConsoleVC(to: self)
-                print("set consoleVC in main")
-            } else {
-                preconditionFailure("failed to setConsoleVC")
-            }
-        }
-
-        // use digits monospaced font
+        // TODO: try removing and base on IB settings
+        // Use digits monospaced font.
         if let fontSize = textView.font?.pointSize, let font = NSFont.userFixedPitchFont(ofSize: fontSize) {
             textView.font = font
         }
 
-        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification), name: Memory.kLogCharacterMessageName, object: nil)
+        self.consoleInputQueueCountLabel.stringValue = "0 buffered characters"
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(logCharactersInNotification(  _:)), name: Memory.kLogCharacterMessageName,                      object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(consoleInputQueueCountChanged(_:)), name: ConsoleViewController.kConsoleInputQueueCountChanged, object: nil)
-
-        updateInputQueueCountLabel()
+        NotificationCenter.default.addObserver(self, selector: #selector(shouldResetConsole(           _:)), name: ConsoleViewController.kShouldReset,                   object: nil)
     }
 }
 
@@ -104,10 +95,8 @@ class ConsoleViewController: NSViewController {
 extension ConsoleViewController: NSTextViewDelegate {
     // insert each ASCII character typed into the queue without altering the string in the NSTextView
     func textView(_: NSTextView, shouldChangeTextIn _: NSRange, replacementString: String?) -> Bool {
-        DispatchQueue.global(qos: .userInitiated).sync {
-            if let replacementString = replacementString {
-                self.queue.push(replacementString)
-            }
+        if let replacementString = replacementString {
+            NotificationCenter.default.post(name: ConsoleViewController.kNewStringTyped, object: nil, userInfo: ["newString" : replacementString])
         }
 
         return false
@@ -116,6 +105,6 @@ extension ConsoleViewController: NSTextViewDelegate {
 
 extension Character {
     var isASCII: Bool {
-        return unicodeScalars.first?.isASCII ?? false
+        return unicodeScalars.first!.isASCII
     }
 }

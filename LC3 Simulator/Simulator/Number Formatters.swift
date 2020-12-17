@@ -49,18 +49,17 @@ class BinaryNumberFormatter: Formatter {
     }
 
     override func isPartialStringValid(_ partialStringPtr: AutoreleasingUnsafeMutablePointer<NSString>, proposedSelectedRange _: NSRangePointer?, originalString _: String, originalSelectedRange _: NSRange, errorDescription _: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
-        var strippedString = partialStringPtr.pointee as String
-        strippedString.removeAll { $0 != "0" && $0 != "1" }
-
         let allowedCharacters = CharacterSet(charactersIn: "10 ")
+        
+        var strippedString = partialStringPtr.pointee as String
+        strippedString.removeAll {  $0 != "0" && $0 != "1" }
 
-        if !(strippedString.count <= 16 && allowedCharacters.isSuperset(of: CharacterSet(charactersIn: partialStringPtr.pointee as String))) {
+        if strippedString.count <= 16 && allowedCharacters.isSuperset(of: CharacterSet(charactersIn: partialStringPtr.pointee as String)) {
+            partialStringPtr.pointee = strippedString as NSString
+            return true
+        } else {
             return false
         }
-
-        partialStringPtr.pointee = strippedString as NSString
-
-        return true
     }
 }
 
@@ -85,13 +84,13 @@ class HexNumberFormatter: Formatter {
 
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
         let scanner = Scanner(string: string)
-        var result: UInt32 = 0
-        // BEWARE: might have issue with overflow here
-        if !scanner.scanHexInt32(&result) {
+        var result: UInt64 = 0
+        // TODO: might have issue with overflow here
+        if !scanner.scanHexInt64(&result) {
             // scanner failed to scan from `string`
             error?.pointee = "bad input - failed to scan" as NSString
             return false
-        } else if scanner.scanLocation != string.count {
+        } else if scanner.currentIndex != string.endIndex {
             // scanner didn't scan all of `string` - must be bad characters in it somewhere
             error?.pointee = "bad input - disallowed characters present" as NSString
             return false
@@ -116,6 +115,7 @@ class HexNumberFormatter: Formatter {
     }
 }
 
+// TODO: at least mostly combine with HexNumberFormatter
 class SearchBarHexNumberFormatter: Formatter {
     override func string(for obj: Any?) -> String? {
         if obj == nil || obj as? String == "" {
@@ -132,18 +132,19 @@ class SearchBarHexNumberFormatter: Formatter {
 
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
         let scanner = Scanner(string: string)
-        var result: UInt32 = 0
+        var result: UInt64 = 0
 
         // case of empty search - do nothing, but allow user to exit search box by returning true
         if string.isEmpty {
             obj?.pointee = nil
             return true
         }
-        if !scanner.scanHexInt32(&result) {
+        if !scanner.scanHexInt64(&result) {
             // scanner failed to scan from `string`
             error?.pointee = "bad input - failed to scan" as NSString
             return false
-        } else if scanner.scanLocation != string.count {
+        } else if scanner.currentIndex != string.endIndex {
+//        } else if scanner.currentIndex != string.endIndex {
             // scanner didn't scan all of `string` - must be bad characters in it somewhere
             error?.pointee = "bad input - disallowed characters present" as NSString
             return false
@@ -191,13 +192,13 @@ class Base10NumberFormatter: Formatter {
 
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
         let scanner = Scanner(string: string)
-        var result: Int32 = 0
+        var result: Int64 = 0
         // BEWARE: might have issue with overflow here
-        if !scanner.scanInt32(&result) {
+        if !scanner.scanInt64(&result) {
             // scanner failed to scan from `string`
             error?.pointee = "bad input - failed to scan" as NSString
             return false
-        } else if scanner.scanLocation != string.count {
+        } else if scanner.currentIndex != string.endIndex {
             // scanner didn't scan all of `string` - must be bad characters in it somewhere
             error?.pointee = "bad input - disallowed characters present" as NSString
             return false
@@ -241,39 +242,13 @@ class CCFormatter: Formatter {
     }
 
     override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription _: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
-        switch string.uppercased() {
-        case "N":
-            obj?.pointee = Registers.CCType.N as AnyObject
-        case "Z":
-            obj?.pointee = Registers.CCType.Z as AnyObject
-        case "P":
-            obj?.pointee = Registers.CCType.P as AnyObject
-        default:
+        if let value = Registers.CCType(rawValue: string.uppercased()) {
+            obj?.pointee = value as AnyObject
+            
+            return true
+        } else {
             return false
         }
-
-//        let scanner = Scanner(string: string)
-//        var result: Int32 = 0
-//        // BEWARE: might have issue with overflow here
-//        if !scanner.scanInt32(&result) {
-//            // scanner failed to scan from `string`
-//            error?.pointee = "bad input - failed to scan" as NSString
-//            return false
-//        } else if scanner.scanLocation != string.count {
-//            // scanner didn't scan all of `string` - must be bad characters in it somewhere
-//            error?.pointee = "bad input - disallowed characters present" as NSString
-//            return false
-//        }
-//
-//        let shortenedResult = UInt16(result & 0x0FFFF)
-//        if (shortenedResult != result) {
-//            // overflow
-//            error?.pointee = "bad input - too large" as NSString
-//            return false
-//        }
-//
-//        obj?.pointee = shortenedResult as AnyObject
-        return true
     }
 
     // check whether a partial string is valid, also preserve cursor position
@@ -285,10 +260,10 @@ class CCFormatter: Formatter {
 }
 
 extension String {
-    init(_ val: UInt16, radix: Int, paddedTo totalLen: Int) {
+    init(_ val: UInt16, radix: Int, paddedTo width: Int) {
         let tempVal = String(val, radix: radix)
-        let pad = String(repeating: "0", count: totalLen - tempVal.count)
+        let pad = String(repeating: "0", count: width - tempVal.count)
         self = pad + tempVal
-        assert(count == totalLen)
+        assert(count == width)
     }
 }

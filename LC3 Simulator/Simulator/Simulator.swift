@@ -26,54 +26,52 @@ import Foundation
 
 class Simulator {
     // MARK: constants
-
+    
+    // Serial queues to work on.
+    let backgroundQueue   = DispatchQueue(label: "Simulator work background queue",         qos: .userInitiated)
+    let coordinatingQueue = DispatchQueue(label: "Simulator coordinating background queue", qos: .userInitiated)
+    
     let kKeyboardPriorityLevel: UInt16 = 4
 
     // MARK: state-keeping
 
     var registers = Registers()
-    var memory = Memory()
-    var mainVC: MainViewController?
-    // TODO: try replacing with reference to queue in ConsoleVC
-    var consoleVC: ConsoleViewController? {
-        return mainVC?.consoleVC
-    }
+    var memory    = Memory()
+    
+    // A queue holding characters given as input.
+    private let consoleInputQueue: ConsoleInputQueue
 
-    private var _isRunning: Bool = false {
+    private(set) var isRunning: Bool = false {
         didSet {
-            NotificationCenter.default.post(name: MainViewController.kSimulatorChangedRunStatus, object: nil, userInfo: nil)
+            NotificationCenter.default.post(name: MainViewController.kSimulatorChangedRunStatus, object: nil)
         }
     }
-
-    var isRunning: Bool {
-        return _isRunning
+    
+    init() {
+        // Must be configured like this to allow the input queue to operate with the same DispatchQueue as performs operations on registers and memory.
+        self.consoleInputQueue = ConsoleInputQueue(dispatchQueue: self.backgroundQueue)
     }
 
     func stopRunning() {
-        _isRunning = false
+        backgroundQueue.async {
+            self.isRunning = false
+        }
     }
 
+    // TODO: consider removing this altogether. Performance seems good without having to keep track of all the modififed memory locations. This adds complexity over a simple full table view reload. This was probably a premature optimization I did a while back because I was trying different things to improve performance. I know know that most performance hits come from printing text to the console.
     class IndexSetTracker {
-        private var actualModifedMemoryLocations: IndexSet = []
-
-        var indexes: IndexSet {
-            let toReturn = actualModifedMemoryLocations
-            actualModifedMemoryLocations = []
-            return toReturn
+        private var modifedMemoryLocations: IndexSet = []
+        
+        func popIndexes() -> IndexSet {
+            defer { modifedMemoryLocations = [] }
+            return modifedMemoryLocations
         }
 
         func insert(_ element: Int) {
-            actualModifedMemoryLocations.insert(element)
+            modifedMemoryLocations.insert(element)
         }
     }
-
     let modifiedMemoryLocationsTracker = IndexSetTracker()
-
-    func setMainVC(to vc: MainViewController) {
-        mainVC = vc
-        memory.setMainVC(to: vc)
-        registers.setMainVC(to: vc)
-    }
 
     // NOTE: might not actually be next instruction executed thanks to interrupt until PC is updated appropriately
     var currentInstructionEntry: Memory.Entry {
@@ -82,21 +80,19 @@ class Simulator {
 
     enum ExceptionType: UInt16 {
         case privilegeModeViolation = 0x00
-        case illegalOpcode = 0x01
+        case illegalOpcode          = 0x01
     }
 
     func loadR6WithSSPIfNotAlreadyThere() {
-        let oldPrivilegeMode = registers.privilegeMode
-
         // 3: Load R6 with SSP if not already there
-        if oldPrivilegeMode == .User {
+        if registers.privilegeMode == .User {
             registers.savedUSP = registers.r[6]
-            registers.r[6] = registers.savedSSP
+            registers.r[6]     = registers.savedSSP
         }
     }
 
     func initiateException(withType exceptionType: ExceptionType) {
-        let oldPC = registers.pc
+        let oldPC  = registers.pc
         let oldPSR = registers.psr
 
         // 2
@@ -107,7 +103,7 @@ class Simulator {
 
         // 3: The PSR and PC of the interrupted process are pushed onto the Supervisor Stack.
         registers.r[6] &-= 1
-        memory.setValue(at: registers.r[6], to: oldPSR, then: modifiedMemoryLocationsTracker.insert)
+        memory.setValue(at: registers.r[6], to: oldPSR,     then: modifiedMemoryLocationsTracker.insert(_:))
         registers.r[6] &-= 1
         memory.setValue(at: registers.r[6], to: oldPC &- 1, then: modifiedMemoryLocationsTracker.insert(_:))
 
@@ -116,7 +112,7 @@ class Simulator {
         // 5: The processor expands that vector to xOlOO or xOlOl, the corresponding 16-bit address in the interrupt vector table
         let expandedVector = vector &+ 0x0100
         // 6: The PC is loaded with the contents of memory location xOlOO or xOlOl, the address of the first instruction in the corresponding exception service routine.
-        registers.pc = memory.getValue(at: expandedVector)
+        registers.pc = memory.getValueAndUpdateKeyboardRegs(at: expandedVector)
     }
 
     // NOTE: ONLY FOR KEYBOARD INTERRUPTS (but there are no others)
@@ -140,21 +136,22 @@ class Simulator {
         // 6: processor expands vector
         let expandedInterruptVector = interruptVector &+ 0x100
         // 7: load PC with contents of memory at 0x180
-        registers.pc = memory.getValue(at: expandedInterruptVector)
+        registers.pc = memory.getValueAndUpdateKeyboardRegs(at: expandedInterruptVector)
     }
 
     // execute instruction normally
     func executeNextInstruction() {
         // don't execute anything if the run latch is off
         if !memory.runLatchIsSet {
-            _isRunning = false
+//            self.$isRunning.mutate({$0 = false})
+            self.isRunning = false
             return
         }
 
         let entryToExecute = currentInstructionEntry
         registers.ir = entryToExecute.value
         let value = registers.ir
-        registers.pc += 1
+        registers.pc &+= 1
 
         // if interrupt to be dealt with, jump to appropriate stuff
         if registers.priorityLevel < kKeyboardPriorityLevel, memory.KBSRIsSet, memory.KBIEIsSet {
@@ -188,13 +185,13 @@ class Simulator {
             registers[7] = registers.pc
             registers.pc = registers[value.BaseR]
         case .LD:
-            registers[value.SR_DR] = memory.getValue(at: registers.pc &+ value.sextPCoffset9)
+            registers[value.SR_DR] = memory.getValueAndUpdateKeyboardRegs(at: registers.pc &+ value.sextPCoffset9)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDI:
-            registers[value.SR_DR] = memory.getValue(at: memory.getValue(at: registers.pc &+ value.sextPCoffset9))
+            registers[value.SR_DR] = memory.getValueAndUpdateKeyboardRegs(at: memory.getValueAndUpdateKeyboardRegs(at: registers.pc &+ value.sextPCoffset9))
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LDR:
-            registers[value.SR_DR] = memory.getValue(at: registers[value.BaseR] &+ value.sextOffset6)
+            registers[value.SR_DR] = memory.getValueAndUpdateKeyboardRegs(at: registers[value.BaseR] &+ value.sextOffset6)
             registers.setCC(basedOn: registers[value.SR_DR])
         case .LEA:
             registers[value.SR_DR] = registers.pc &+ value.sextPCoffset9
@@ -208,9 +205,9 @@ class Simulator {
         case .RTI:
             // starts with state 8 in the diagram
             if registers.psr.getBit(at: 15) == 0 {
-                registers.pc = memory.getValue(at: registers.r[6])
+                registers.pc  = memory.getValueAndUpdateKeyboardRegs(at: registers.r[6])
                 registers.r[6] &+= 1
-                registers.psr = memory.getValue(at: registers.r[6])
+                registers.psr = memory.getValueAndUpdateKeyboardRegs(at: registers.r[6])
                 registers.r[6] &+= 1
                 if registers.psr.getBit(at: 15) == 1 {
                     registers.savedSSP = registers.r[6]
@@ -223,100 +220,99 @@ class Simulator {
         case .ST:
             memory.setValue(at: registers.pc &+ value.sextPCoffset9, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .STI:
-            let effectiveAddress = memory.getValue(at: registers.pc &+ value.sextPCoffset9)
+            let effectiveAddress = memory.getValueAndUpdateKeyboardRegs(at: registers.pc &+ value.sextPCoffset9)
 //            print(effectiveAddress)
             memory.setValue(at: effectiveAddress, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .STR:
             memory.setValue(at: registers[value.BaseR] &+ value.sextOffset6, to: registers[value.SR_DR], then: modifiedMemoryLocationsTracker.insert)
         case .TRAP:
             registers[7] = registers.pc
-            registers.pc = memory.getValue(at: value.trapVect8)
+            registers.pc = memory.getValueAndUpdateKeyboardRegs(at: value.trapVect8)
         case .NOT_IMPLEMENTED:
             // trigger illegal opcode exception
             initiateException(withType: .illegalOpcode)
         }
 
         // Update I/O stuff
-        if let consoleVC = consoleVC, consoleVC.queueHasNext, !memory.KBSRIsSet {
+        if !memory.KBSRIsSet, let char = consoleInputQueue.pop() {
             //            memory.setMemoryValue(at: Memory.KBDR, to: consoleVC.queue.pop()!.toUInt16ASCII)
-            memory[Memory.KBDR].value = consoleVC.popFromQueue()!.toUInt16ASCII
+            memory[Memory.KBDR].value = char.toUInt16ASCII
             memory[Memory.KBSR].value.setBit(at: 15, to: 1)
         }
         if !memory.DSRIsSet {
             // reset DSR if not set
             // can safely do b/c I always deal w/ input in DDR - see Memory for other side of this
-            memory[Memory.DSR].value.setBit(at: 15, to: 1)
+            memory[Memory .DSR].value.setBit(at: 15, to: 1)
+        }
+    }
+    
+    // The following functions act similarly to C macros. They're probably too complicated to be worthwhile, but they ensure that all operations which should be performed for each attempt to run instructions are done correctly.
+    func simulatorRunWrapper(runWhileNormalConditionsAndAlso additionalCondition: @escaping () -> Bool, instructionCompletionHandler: (() -> Void)? = nil) {
+        coordinatingQueue.async {
+            self.backgroundQueue.sync {
+                self.isRunning = true
+            }
+            
+            repeat {
+                self.backgroundQueue.sync {
+                    self.executeNextInstruction()
+                    // Execute the next things to execute, if any were given.
+                    instructionCompletionHandler?()
+                }
+            } while self.backgroundQueue.sync { !self.currentInstructionEntry.shouldBreak && self.isRunning && additionalCondition() }
+            
+            self.backgroundQueue.sync {
+                self.isRunning = false
+            }
+            
+//            NotificationCenter.default.post(name: Simulator.kRunFinishedWithModifiedMemoryLocations, object: self.modifiedMemoryLocationsTracker.popIndexes())
         }
     }
 
-    typealias IndexUpdateFunction = (IndexSet) -> Void
+    // Run just one instruction.
+    func stepIn() {
+        simulatorRunWrapper(runWhileNormalConditionsAndAlso: { false })
+    }
 
-    // run until have returned to same level as started at?
-    func stepOver(finallyUpdateIndexes: IndexUpdateFunction) {
-        _isRunning = true
+    // Run until we step out of the current subroutine.
+    func stepOut() {
+        simulatorRunWrapper(runWhileNormalConditionsAndAlso: {
+            let instructionType = self.registers.ir.instructionType
+            
+            return instructionType != .RET && instructionType != .RTI
+        })
+    }
+    
+    // Run until have stepped over the next instruction. If the next instruciton invokes a subroutine, finish running that subroutine as well.
+    func stepOver() {
         var levelsDeep = 0
-        var haveSteppedIn = false
 
-        repeat {
-            executeNextInstruction()
-            switch registers.ir.instructionType {
+        simulatorRunWrapper(runWhileNormalConditionsAndAlso: { levelsDeep > 0 }, instructionCompletionHandler: {
+            switch self.registers.ir.instructionType {
             case .TRAP:
-                haveSteppedIn = true
                 levelsDeep += 1
             case .JSR:
-                haveSteppedIn = true
                 levelsDeep += 1
             case .JSRR:
-                haveSteppedIn = true
                 levelsDeep += 1
             case .RET:
+                levelsDeep -= 1
+            case .RTI:
                 levelsDeep -= 1
             default:
                 break
             }
-        } while !currentInstructionEntry.shouldBreak && isRunning && (!haveSteppedIn || levelsDeep > 0)
-        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
-        _isRunning = false
+        })
     }
 
-    // TODO: maybe make this thing run until a step in actually happens
-    // run until have
-    func stepIn(finallyUpdateIndexes: IndexUpdateFunction) {
-        _isRunning = true
-        executeNextInstruction()
-
-        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
-        _isRunning = false
-    }
-
-    func stepOut(finallyUpdateIndexes: IndexUpdateFunction) {
-        _isRunning = true
-        var haveSteppedOut = false
-
-        repeat {
-            executeNextInstruction()
-            haveSteppedOut = registers.ir.instructionType == .RET
-        } while !currentInstructionEntry.shouldBreak && !haveSteppedOut
-
-        _isRunning = false
-        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
-    }
-
-    func runForever(finallyUpdateIndexes: IndexUpdateFunction) {
-        _isRunning = true
-
-        executeNextInstruction()
-        while !currentInstructionEntry.shouldBreak, isRunning {
-            executeNextInstruction()
-        }
-
-        _isRunning = false
-        finallyUpdateIndexes(modifiedMemoryLocationsTracker.indexes)
+    // Run until we're told to halt by the user or OS.
+    func runForever() {
+        simulatorRunWrapper(runWhileNormalConditionsAndAlso: { true })
     }
 }
 
 extension Character {
     var toUInt16ASCII: UInt16 {
-        return UInt16(truncating: unicodeScalars.first!.value as NSNumber)
+        return UInt16(truncating: self.unicodeScalars.first!.value as NSNumber)
     }
 }

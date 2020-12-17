@@ -16,22 +16,16 @@
 import Cocoa
 import Foundation
 
-class Memory {
+struct Memory {
     private var entries: [Entry] = []
 
     static let KBSR: UInt16 = 0xFE00
     static let KBDR: UInt16 = 0xFE02
-    static let DSR: UInt16 = 0xFE04
-    static let DDR: UInt16 = 0xFE06
-    static let MCR: UInt16 = 0xFFFE
+    static let DSR:  UInt16 = 0xFE04
+    static let DDR:  UInt16 = 0xFE06
+    static let MCR:  UInt16 = 0xFFFE
 
     static let kLogCharacterMessageName = Notification.Name("logCharacter")
-
-    var mainVC: MainViewController! // NSApp.mainWindow?.contentViewController! as! MainViewController
-
-    func setMainVC(to vc: MainViewController) {
-        mainVC = vc
-    }
 
     var KBSRIsSet: Bool {
         return self[Memory.KBSR].value.getBit(at: 15) == 1
@@ -50,10 +44,10 @@ class Memory {
     }
 
     // TODO: make static singleton instead of passing in `entries`?
-    class Entry {
-        var value: UInt16 = 0
-        var shouldBreak: Bool = false
-        var label: String?
+    struct Entry {
+                var value:       UInt16  = 0
+        /*@Atomic*/ var shouldBreak: Bool    = false
+                var label:       String? = nil
 
         enum InstructionType {
             case ADDR
@@ -77,27 +71,27 @@ class Memory {
             case TRAP
             case NOT_IMPLEMENTED
         }
-
-        init(value: UInt16) {
-            self.value = value
-        }
-
-        // Used to initalize with default values only
-        init() {}
     }
 
-    func instructionString(at address: Int) -> String {
-        func getEffectiveAddrLabel(instructionAddr: Int, offset: Int16) -> String {
+    func instructionString(of address: Int) -> String {
+        func getEffectiveAddrLabel(instructionAddr: Int, offset: UInt16) -> String {
             // remember the PC increment
             // TODO: maybe use &+ operator instead? won't get overflow this way if that's what I'm going for
             //   just left this comment as passing by, but this setup seems a bit weird
-            let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) &+ 1 &+ offset)
+//            let effectiveAddress = UInt16(bitPattern: Int16(bitPattern: UInt16(instructionAddr)) &+ 1 &+ offset)
+            let effectiveAddress = UInt16(instructionAddr) &+ 1 &+ offset
+            let signedOffset     = Int16(bitPattern: offset)
 
-            return entries[Int(effectiveAddress)].label ?? "#\(offset)"
+            return entries[Int(effectiveAddress)].label ?? "#\(signedOffset)"
         }
 
         let val = entries[address].value
 
+        // Fast path for common case.
+        if val == 0 {
+            return "NOP"
+        }
+        
         switch val.instructionType {
         case .ADDR:
             return "ADD R\(val.SR_DR), R\(val.SR1), R\(val.SR2)"
@@ -109,44 +103,39 @@ class Memory {
             return "AND R\(val.SR_DR), R\(val.SR1), #\(val.sextImm5)"
         case .BR:
             // Return NOP if branching nowhere or all 0s
-            if (val & 0x0E00) == 0 || val == 0 {
+            // TODO: test optimization, but I'm pretty sure that the second {val == 0} check will never be hit b/c the
+            //       {val & 0x0E00 == 0} will always trip first.
+            // TODO: replace with getBits()
+            if val & 0x0E00 == 0 { // || val == 0 {
                 if isascii(Int32(val)) != 0 {
                     return "'\(val.ascii.literalRepresentation)'"
                 } else {
                     return "NOP"
                 }
+            } else {
+                var branchStr = "BR\(val.N ? "n" : "")\(val.Z ? "z" : "")\(val.P ? "p" : "")"
+                branchStr.append(String(repeating: " ", count: 6 - branchStr.count))
+                branchStr.append(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))
+                
+                return branchStr
             }
-
-            var branchStr = "BR"
-            if val.getBit(at: 11) == 1 {
-                branchStr.append("n")
-            }
-            if val.getBit(at: 10) == 1 {
-                branchStr.append("z")
-            }
-            if val.getBit(at: 9) == 1 {
-                branchStr.append("p")
-            }
-            branchStr.append(String(repeating: " ", count: 6 - branchStr.count))
-            branchStr.append(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))
-            return branchStr
         case .JMP:
             return "JMP R\(val.BaseR)"
         // TODO: use labels when available
         case .JSR:
-            return "JSR \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset11)))"
+            return "JSR \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset11))"
         // TODO: test from here on down in function
         case .JSRR:
             // TODO: test
             return "JSRR R\(val.BaseR)"
         case .LD:
-            return "LD R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
+            return "LD R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))"
         case .LDI:
-            return "LDI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
+            return "LDI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))"
         case .LDR:
             return "LDR R\(val.SR_DR), R\(val.BaseR), #\(val.sextOffset6)"
         case .LEA:
-            return "LEA R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
+            return "LEA R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))"
         case .NOT:
             return "NOT R\(val.SR_DR), R\(val.getBits(high: 8, low: 6))"
         case .RET:
@@ -154,17 +143,18 @@ class Memory {
         case .RTI:
             return "RTI"
         case .ST:
-            return "ST R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
+            return "ST R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))"
         case .STI:
-            return "STI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: Int16(bitPattern: val.sextPCoffset9)))"
+            return "STI R\(val.SR_DR), \(getEffectiveAddrLabel(instructionAddr: address, offset: val.sextPCoffset9))"
         case .STR:
             return "STR R\(val.SR_DR), R\(val.BaseR), #\(val.sextOffset6)"
         case .TRAP:
             let actualTrapAddress = entries[Int(val.zextTrapVect8)].value
             if let trapLabel = entries[Int(actualTrapAddress)].label {
                 return "TRAP \(trapLabel)"
+            } else {
+                return "TRAP 0x\(String(val.zextTrapVect8, radix: 16).uppercased())"
             }
-            return "TRAP x\(String(val.zextTrapVect8, radix: 16))"
         case .NOT_IMPLEMENTED:
             return "RESERVED INSTRUCTION"
         }
@@ -178,28 +168,31 @@ class Memory {
 
     // NOTE: follows design of online simulator
     init() {
+        // Allocate just enough space for all of memory.
+        entries.reserveCapacity(0x10000)
+        
         // Initialize rest of memory to all 0s and no breakpoints
-        for _ in 0 ... 0xFFFF {
+        for _ in 0...0xFFFF {
             entries.append(Entry())
         }
 
         // fill in bad traps
         // NOTE: Windows sim fills in xFF, online one doesn't
-        for i in 0 ... (0xFF as UInt16) {
+        for i in 0...(0xFF as UInt16) {
             self[i].value = 0xFD00
         }
 
         // fill in input prompt
         let inputPromptAsUInt16 = "Input a character> \0".utf8.map { UInt16($0) }
         let promptStartAddress = 0x04A8
-        for i in 0 ..< inputPromptAsUInt16.count {
+        for i in 0..<inputPromptAsUInt16.count {
             self[UInt16(promptStartAddress + i)].value = inputPromptAsUInt16[i]
         }
 
         // fill in halt message
         let haltMessageAsUInt16 = "\n----- Halting the processor ----- \n\0".utf8.map { UInt16($0) }
         let haltStartAddress = 0xFD80
-        for i in 0 ..< haltMessageAsUInt16.count {
+        for i in 0..<haltMessageAsUInt16.count {
             self[UInt16(haltStartAddress + i)].value = haltMessageAsUInt16[i]
         }
 
@@ -215,34 +208,33 @@ class Memory {
     }
 
     // Loads multiple programs in
-    func loadProgramsFromFiles(at urls: [URL], then reloadTableViewRowsInSet: (IndexSet) -> Void) {
+    mutating func loadProgramsFromFiles(at urls: [URL]) {
         for url in urls {
-            loadProgramFromFile(at: url, then: reloadTableViewRowsInSet)
+            loadProgramFromFile(at: url)
         }
     }
     
-    func showAlert(fileName: String) {
+    private func showAlert(fileName: String, additionalMessage: String? = nil) {
         enum LoadError: Error {
             case error
         }
         
         let alert = NSAlert(error: LoadError.error)
-        alert.messageText = "Failed to load file \(fileName)"
+        alert.messageText = "Failed to load file \(fileName)."
+        if let additionalMessage = additionalMessage {
+            alert.messageText.append(" \(additionalMessage)")
+        }
         alert.runModal()
     }
     
-    // TODO: deal with bad data gracefully, probably display error dialogue
+    // TODO: don't make changes to memory until whole file has been loaded in
     // Loads in a single program
-    func loadProgramFromFile(at url: URL, then reloadTableViewRowsInSet: (IndexSet) -> Void) {
-        guard let fileData = NSData(contentsOf: url) else {
+    private mutating func loadProgramFromFile(at url: URL) {
+        guard let fileData = NSData(contentsOf: url), fileData.length % 2 == 0 else {
             showAlert(fileName: url.relativePath)
             return
         }
-        guard fileData.length % 2 == 0 else {
-            print("uneven length input file")
-            showAlert(fileName: url.relativePath)
-            return
-        }
+        
         let numUInt16sInFile = fileData.length / 2
         print("numUInt16sInFile = \(numUInt16sInFile)")
         let dataRange = NSRange(location: 0, length: fileData.length)
@@ -263,11 +255,9 @@ class Memory {
         let programData = values[1...]
 
         var modifiedMemoryLocations = IndexSet()
-        defer {
-            // whenever this function ends (through error, like if the symbols file can't be found, or otherwise), reload all table views
-            reloadTableViewRowsInSet(modifiedMemoryLocations)
-        }
-
+//        // whenever this function ends (through error, like if the symbols file can't be found, or otherwise), reload all table views
+//        defer { reloadTableViewRowsInSet(modifiedMemoryLocations) }
+        
         // might be able to do this without recording all separately just by reloading range from start to (start + length)
         for (index, value) in programData.enumerated() {
             print("val[\(index)] = " + String(format: "0x%04X", value))
@@ -278,48 +268,38 @@ class Memory {
 
         // try opening corresponding symbol file
         let symURL = url.deletingPathExtension().appendingPathExtension("sym")
-        do {
-            let symFileContents = try String(contentsOf: symURL)
+        if let symFileContents = try? String(contentsOf: symURL) {
+            var labels: [Int : String?] = [:]
             print("found sym file at \(symURL)")
             // get each line of symbol file with
             let symFileLines = symFileContents.components(separatedBy: .newlines)[4...]
             for line in symFileLines {
-                guard line.count > 0 else {
-                    // final line of file is empty
-                    return
-                }
+                // handle (potential?) empty final line of file
+                guard line.count > 0 else { return }
                 print(line)
-                var label: NSString?
-                var addressStr: NSString?
                 let scanner = Scanner(string: line)
                 // ignore `/` characters at beginning of line
                 let charsToSkip = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/"))
                 scanner.charactersToBeSkipped = charsToSkip
-                guard scanner.scanUpToCharacters(from: charsToSkip, into: &label) == true, label != nil else {
-                    showAlert(fileName: symURL.relativePath)
+                guard let label = scanner.scanUpToCharacters(from: charsToSkip), let addressStr = scanner.scanUpToCharacters(from: charsToSkip), let address = UInt16(addressStr, radix: 16) else {
+                    showAlert(fileName: symURL.relativePath, additionalMessage: "We automatically tried to load this symbol file because you loaded the object file \(url.lastPathComponent).")
                     return
                 }
-                guard scanner.scanUpToCharacters(from: charsToSkip, into: &addressStr) == true, addressStr != nil else {
-                    showAlert(fileName: symURL.relativePath)
-                    return
-                }
-                guard let address = UInt16(addressStr! as String, radix: 16) else {
-                    showAlert(fileName: symURL.relativePath)
-                    return
-                }
-                entries[Int(address)].label = label as String?
+                labels[Int(address)] = label
                 // add the entries with labels attached to modifiedMemoryLocations in case a label is added for an address not in the program itself
-                modifiedMemoryLocations.insert(Int(address))
-                print("new label: \(String(describing: label)) at address: \(address)")
+                print("new label: \(label) at address: \(address)")
             }
-        } catch {
-            showAlert(fileName: symURL.relativePath)
-            print("Failed to open matching symbol file with error: \(error)")
-            return
+            
+            for (address, label) in labels {
+                entries[address].label = label
+                modifiedMemoryLocations.insert(address)
+            }
         }
     }
+    
 }
 
+// Getters and setters.
 extension Memory {
     subscript(index: UInt16) -> Entry {
         get {
@@ -330,7 +310,8 @@ extension Memory {
         }
     }
 
-    func setValue(at row: UInt16, to newValue: UInt16, then: (Int) -> Void) {
+    // TODO: Determine if {self[Memory.DSR].value.setBit(at: 15, to: 1)} does anything given the later {self[row].value = newValue}
+    mutating func setValue(at row: UInt16, to newValue: UInt16, then: (Int) -> Void) {
         // can do this safely because DDR will always be ready to read because I clear it after each instruction is run
         if row == Memory.DDR {
             NotificationCenter.default.post(name: Memory.kLogCharacterMessageName, object: newValue.ascii)
@@ -340,7 +321,7 @@ extension Memory {
         then(Int(row))
     }
 
-    func getValue(at index: UInt16) -> UInt16 {
+    mutating func getValueAndUpdateKeyboardRegs(at index: UInt16) -> UInt16 {
         let currentVal = self[index].value
 
         // update KBSR and KBDR if KBDR is read from to reflect current state
@@ -355,17 +336,22 @@ extension Memory {
 // MARK: Instruction extensions to make parsing easier
 
 extension UInt16 {
+    // Bit-manipulating functions are 0-indexed, increasing from the least to most significant bits.
+    
     func getBit(at pos: Int) -> UInt16 {
+        assert(pos < self.bitWidth)
         return (self >> pos) & 1
     }
 
     mutating func setBit(at pos: Int, to val: UInt16) {
         assert(val == 0 || val == 1)
+        assert(pos < self.bitWidth)
         self = (self & ~(1 << pos)) | (val << pos)
     }
 
     var instructionType: Memory.Entry.InstructionType {
         let instructionBits = self >> 12
+        
         switch instructionBits {
         case 0b0001:
             if getBit(at: 5) == 0 {
@@ -382,7 +368,7 @@ extension UInt16 {
         case 0b0000:
             return .BR
         case 0b1100:
-            if getBit(at: 8) == 1, getBit(at: 7) == 1, getBit(at: 6) == 1 {
+            if getBits(high: 8, low: 6) == 0b111 {
                 return .RET
             } else {
                 return .JMP
@@ -419,11 +405,8 @@ extension UInt16 {
     }
 
     func getBits(high: Int, low: Int) -> UInt16 {
+        assert(high > low)
         return (self >> low) & (0xFFFF >> (Int(16) - (high - low + 1)))
-    }
-
-    var imm5: UInt16 {
-        return getBits(high: 4, low: 0)
     }
     
     func sext(sextBitIndex: Int) -> UInt16 {
@@ -434,80 +417,38 @@ extension UInt16 {
         }
     }
     
-    // NOTE: returns a signed result to make displaying and working with easier
-    var sextImm5: UInt16 {
-        return imm5.sext(sextBitIndex: 4)
-    }
+    var imm5:           UInt16 { getBits(high: 4, low: 0) }
+    var sextImm5:       UInt16 { imm5.sext(sextBitIndex: 4) }
 
-    // NOTE: I called it SR_DR because it's sometimes SR and sometimes DR
-    var SR_DR: UInt16 {
-        return getBits(high: 11, low: 9)
-    }
+    // NOTE: I called it SR_DR because it's sometimes SR and sometimes DR.
+    var SR_DR:          UInt16 { getBits(high: 11, low: 9) }
 
-    var SR1: UInt16 {
-        return getBits(high: 8, low: 6)
-    }
+    var SR1:            UInt16 { getBits(high: 8, low: 6) }
+    var SR2:            UInt16 { getBits(high: 2, low: 0) }
 
-    var SR2: UInt16 {
-        return getBits(high: 2, low: 0)
-    }
+    var PCoffset9:      UInt16 { getBits(high: 8, low: 0) }
+    var sextPCoffset9:  UInt16 { PCoffset9.sext(sextBitIndex: 8) }
 
-    var PCoffset9: UInt16 {
-        return getBits(high: 8, low: 0)
-    }
+    var PCoffset11:     UInt16 { getBits(high: 10, low: 0) }
+    var sextPCoffset11: UInt16 { PCoffset11.sext(sextBitIndex: 10) }
 
-    var sextPCoffset9: UInt16 {
-        return PCoffset9.sext(sextBitIndex: 8)
-    }
+    var BaseR:          UInt16 { getBits(high: 8, low: 6) }
 
-    var PCoffset11: UInt16 {
-        return getBits(high: 10, low: 0)
-    }
+    var offset6:        UInt16 { getBits(high: 5, low: 0) }
+    var sextOffset6:    UInt16 { offset6.sext(sextBitIndex: 5) }
 
-    var sextPCoffset11: UInt16 {
-        return PCoffset11.sext(sextBitIndex: 10)
-    }
+    var trapVect8:      UInt16 { getBits(high: 7, low: 0) }
+    var zextTrapVect8:  UInt16 { trapVect8 }
 
-    var BaseR: UInt16 {
-        return getBits(high: 8, low: 6)
-    }
+    var N: Bool { getBit(at: 11) == 1 }
+    var Z: Bool { getBit(at: 10) == 1 }
+    var P: Bool { getBit(at:  9) == 1 }
 
-    var offset6: UInt16 {
-        return getBits(high: 5, low: 0)
-    }
-
-    var sextOffset6: UInt16 {
-        return offset6.sext(sextBitIndex: 5)
-    }
-
-    var trapVect8: UInt16 {
-        return getBits(high: 7, low: 0)
-    }
-
-    var zextTrapVect8: UInt16 {
-        return trapVect8
-    }
-
-    var N: Bool {
-        return getBit(at: 11) == 1
-    }
-
-    var Z: Bool {
-        return getBit(at: 10) == 1
-    }
-
-    var P: Bool {
-        return getBit(at: 9) == 1
-    }
-
-    var ascii: Character {
-        return Character(UnicodeScalar(UInt8(getBits(high: 7, low: 0))))
-    }
+    var ascii: Character { Character(UnicodeScalar(UInt8(getBits(high: 7, low: 0)))) }
 }
 
-// gives literal representation in string like python __repr__
+// Gives literal representation in string like python __repr__().
+// For example, a newline is given as the two characters "\n".
 extension Character {
-    var literalRepresentation: String {
-        return debugDescription.trimmingCharacters(in: ["\""])
-    }
+    var literalRepresentation: String { debugDescription.trimmingCharacters(in: ["\""]) }
 }
