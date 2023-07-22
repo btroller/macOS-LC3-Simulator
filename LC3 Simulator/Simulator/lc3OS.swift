@@ -2,9 +2,20 @@
 //  lc3OS.swift
 //  LC3 Simulator
 //
-//  Created by Benjamin Troller on 1/26/19.
-//  Copyright © 2019 Benjamin Troller. All rights reserved.
+//  File created by Benjamin Troller on 1/26/19.
 //
+//  This operating system was written by Brian J. Hartman, and is distributed
+//  under the following license:
+//
+//    This software is provided "AS IS".  No warranty is expressed or implied.
+//    Permission to copy without fee all or part of this material is granted
+//    provided that the copies are not made or distributed for direct commercial
+//    advantage, this copyright notice is included, and notice that copying is
+//    by permission of the author of this software.  To copy otherwise, or to
+//    republish, requires a fee and/or specific written permission from the author.
+//
+//    Copyright (c) 1998 - 2003 Brian J. Hartman
+//    brianhartman@hotmail.com
 
 import Foundation
 

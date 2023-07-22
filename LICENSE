@@ -1,0 +1,40 @@
+Everything in this program except for the LC-3 operating system loaded by the 
+simulator is licensed under the DWTFYWWI license. The LC-3 operating system 
+used by this simulator (which appears in the file lc3OS.swift) is licensed under 
+a non-standard license. 
+
+Both of these are included below.
+
+--------------------------------------------------------------------------------
+
+	                          DWTFYWWI LICENSE
+	                       Version 1, January 2006
+
+	 Copyright (C) 2006 Ævar Arnfjörð Bjarmason
+
+	                            Preamble
+
+	  The licenses for most software are designed to take away your
+	freedom to share and change it.  By contrast, the DWTFYWWI or Do
+	Whatever The Fuck You Want With It license is intended to guarantee
+	your freedom to share and change the software--to make sure the
+	software is free for all its users.
+
+	                         DWTFYWWI LICENSE
+	   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+	0. The author grants everyone permission to do whatever the fuck they
+	want with the software, whatever the fuck that may be.
+
+--------------------------------------------------------------------------------
+
+LC-3 operating system license:
+
+    This software is provided "AS IS".  No warranty is expressed or implied.
+    Permission to copy without fee all or part of this material is granted
+    provided that the copies are not made or distributed for direct commercial
+    advantage, this copyright notice is included, and notice that copying is
+    by permission of the author of this software.  To copy otherwise, or to
+    republish, requires a fee and/or specific written permission from the author.
+
+    Copyright (c) 1998 - 2003 Brian J. Hartman
+    brianhartman@hotmail.com
